@@ -1,0 +1,1004 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- Add to home screen for Safari on iOS -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="26lr Clock">
+<link rel="manifest" href="26lrClock.webmanifest.json">
+<script type="text/javascript" src="26lrClock.js"></script>
+<title>26Lr Clock</title>
+<style>
+body {
+	background: #000000;
+  text-align:center;
+  color:#ddf;
+  font-family: Tahoma, 'Geneva', Verdana;
+    color:#cce;
+}
+.place{
+	font-size:45px;
+	border-radius: 10%;
+  font-family: Menlo, monospace;
+}
+.letter{
+	position: absolute;
+	left: 50%;
+	width:40px;
+	//border-radius: 50%;
+	//background: #999;
+	margin-top:140px;
+	margin-left: -18px;
+	font-size: 32px;
+  font-family: Menlo-Bold, monospace;
+}
+.linuteletter{
+	font-size: 10px;
+  font-family: Menlo-Bold, monospace;
+}
+.number{
+	position: absolute;
+	left: 50%;
+	//margin-top: 156px;
+	margin-left: -5px;
+	//width:4vw;
+	font-size:14px;
+	text-align:center;
+  color: #bbb;
+}
+
+#lourclock{margin: 50 0;}
+#hourclock{margin: 20 0; height:360px;}
+#linuteLetters{width: 360px;}
+
+#datestring{
+  margin: 0 20px 0 0;
+  //font-size: 18px;
+  //font-family: Menlo-Bold, monospace;
+  //color: #bbb;
+}
+/*
+#map{
+	position: absolute;
+	//background-position-x: center;
+  margin-left: -400px;
+  background-image: url("vecteezy_map.jpg");
+  background-size: contain;
+  background-repeat: repeat-x;
+  height:100px;
+  width:80%;
+     
+}
+
+#daycolor{
+	position: absolute;
+	background: linear-gradient(
+    to right,
+    blue,
+    indigo,
+    violet,
+    red,
+    orange,
+    yellow,
+    green
+  );
+   height:100px;
+   width:100%;
+     
+}
+*/
+
+.hand {
+  position: absolute;
+  left: 50%;
+  border-top-left-radius: 50%;
+  border-top-right-radius: 50%;
+  transform-origin: 50% 100%;
+}
+
+#hourhand {
+	z-index: 10;
+  width: 8px;
+  height: 80px;
+  background: #999;
+  margin-left: -4px;
+  margin-top: 80px;
+}
+
+#minutehand {
+  width: 4px;
+  height: 100px;
+  background: #999;
+  margin-left: -2px;
+  margin-top: 60px;
+}
+
+#secondhand {
+  width: 2px;
+  height: 100px;
+  background: #999;
+  margin-left: -1px;
+  margin-top: 60px;
+}
+
+
+</style>
+</head>
+<body>
+
+  <div id="lourClock">
+  	<span class="place">-</span>
+		<span class="place">-</span>
+		<span class="place">-</span>
+		<span class="place">-</span>
+		<span class="place">-</span>
+		<span class="place">:</span>
+		<span class="place">-</span>
+		<span class="place">-</span>
+		<span class="place">-</span>
+		<span alt="licros" class="place">-</span>
+    <span alt="lanos" class="place" id="lanos">-</span>
+	</div>
+	<div id="linuteLetters"></div>
+	<div id="hourClock">
+	    <div class="hand" id="hourhand"></div>
+	    <div class="hand" id="minutehand"></div>
+	    <div class="hand" id="secondhand"></div>
+	</div>
+ <div>
+	<span id="datestring"></span><span id="timestring"></span>
+</div>
+<br>
+<select name="timezone" id="timezone">
+</select><br>
+<label for="dateinput">Set to:</label>
+<input type="text" id="dateinput" >
+
+<div id="HelpText">
+    <p><a href="http://www.howarddev.com">HowardDev</a></p>
+</div>
+</body>
+
+
+<script>
+
+var html = "";
+for (var i = 0; i < 26; i++) {
+  html += "<div class='letter'>" + String.fromCharCode(i+65) + "</div>";
+}
+for (var i = 1; i < 13; i++) {
+  html += "<div class='number'>" + i + "</div>";
+}
+document.getElementById('hourClock').innerHTML += html;
+
+var letter = document.getElementsByClassName('letter');
+for (var i = 0; i < 26; i++) {
+  letter[i].style.color = "hsl("+i*13.85+", 100%, 50%)";
+}
+
+var number = document.getElementsByClassName('number');
+
+for (var i = 0; i < 12; i++) {
+    var r = 140;
+    var h = (i+1)/12;
+    var x =  0 + (r * Math.sin(h*2*Math.PI));
+    var y =  150 - (r * Math.cos(h*2*Math.PI));
+    number[i].style.translate = x+"px "+y+"px";
+}
+
+const params = new Proxy(new URLSearchParams(window.location.search), {
+  get: (searchParams, prop) => searchParams.get(prop),
+});
+//var precision = params.precision || 5;
+
+var running = false;
+var analogtimer,licrotimer,lanotimer;
+
+var displayed_date = new Date();
+var olddigits = [0,0,0,0,0,0,0,0,0,0,0,0];
+var localtimeOffset;
+var stimezone;
+
+function lourclock(){
+	var digits = displayed_date.to26lr().split("");
+  var lourclock = document.getElementsByClassName('place');
+  
+	for (var i=running?9:10;i>=0;i--){
+      if (i!=5){
+        if(running && olddigits[i]==digits[i]) break;
+        lourclock[i].style.color = "hsl("+((digits[i].charCodeAt(0)-65)*13.85) + ", 100%, 50%)";
+      } 
+    	lourclock[i].innerHTML=digits[i];
+  }
+  
+  if(i<=6){
+  	var l = digits[6].charCodeAt(0)-65;
+  	var h = 0;
+		var r = 110;
+		for (var i=0;i<26;i++){
+	  	if (l>25) l=0;
+			h = l/13 - (localtimeoffset/720);
+			r =  r -= 3;
+			//r = i>12?120:90;
+			var x =  0 + (r * Math.sin(h*2*Math.PI));
+			var y =  0 - (r * Math.cos(h*2*Math.PI));
+			letter[l].style.translate = x+"px "+y+"px";
+			letter[l].style.scale = (36-i)/36;
+			//letter[l].style.color = "hsl("+l*13.85+ ", 100%, "+ (60-i*2) +"%)";
+			l++;
+		}
+  }
+  lourclock[5].style.color = "hsl("+ displayed_date.timepart()*360+", 100%, 50%)";
+  lanos = digits[10].charCodeAt(0)-65;	
+  olddigits = digits;
+}
+
+
+var lanos = 0;
+function updatelanos(){
+	if (lanos>25) lanos = 0;
+	document.getElementById('lanos').innerHTML=String.fromCharCode(lanos+65);
+	document.getElementById('lanos').style.color = "hsl("+lanos*13+", 100%, 50%)";
+	lanos++;
+}
+
+function hourclock() {
+	var localsecondsintoday = (Math.floor(86400 * displayed_date.timepart()) + 43200 - (localtimeoffset * 60)) % 86400;
+	var hDeg = 360 * (localsecondsintoday % 43200)/43200;
+	var mDeg = 360 * (localsecondsintoday % 3600)/3600;
+	var sDeg = 360 * (localsecondsintoday % 60)/60;
+  document.getElementById('hourhand').style.transform = "rotate("+hDeg+"deg)";
+  document.getElementById('hourhand').style.backgroundColor = "hsl("+ displayed_date.timepart()*360+", 100%, 50%)";
+  document.getElementById('minutehand').style.transform = "rotate("+mDeg+"deg)";
+  document.getElementById('secondhand').style.transform = "rotate("+sDeg+"deg)";
+  document.getElementById('datestring').innerHTML = displayed_date.toLocaleDateString("en-US",{
+    timeZone: stimezone,
+    weekday: "short",
+    year: "numeric",
+    month: "long",
+    day: "numeric"
+  })
+  document.getElementById('timestring').innerHTML = displayed_date.toLocaleTimeString("en-US",{
+    timeZone: stimezone,
+    timeZoneName: 'short'
+  });
+}
+
+function start(){
+	running = true;
+	runLourclock();
+  runHourclock();
+	licrotimer = setInterval("runLourclock()", 189);
+	lanotimer = setInterval("updatelanos()", 7);
+	secondtimer = setInterval("runHourclock()", 1000);
+}
+
+function runLourclock(){
+	settoDate(new Date());
+	lourclock();
+}
+
+function runHourclock(){
+	settoDate(new Date());
+	hourclock();
+}
+
+function stop(){
+	running = false;
+  clearInterval(lanotimer);
+  clearInterval(licrotimer);
+  clearInterval(secondtimer);
+}
+
+function settoDate(d){
+	displayed_date = d;
+	localtimeoffset = getTimezoneOffset(stimezone);
+}
+
+document.getElementById('dateinput').addEventListener("change", (event) => {
+	stop();
+	var d = new Date(event.target.value);
+	if (isNaN(d)) d = DateFrom26Lr(event.target.value); 
+  settoDate(d);
+  lourclock();
+  hourclock();
+});
+
+document.getElementById('lourClock').addEventListener('click', (e) => {
+	running ? stop() : start();
+});
+
+document.getElementById('datestring').addEventListener('click', (e) => {
+//	changeTimeZone("Asia/Calcutta");
+});
+
+
+
+
+/*
+map = document.getElementById('map');
+
+
+map.addEventListener("mousedown", (e) => {
+	if (running) stop();
+  lastx = e.offsetX;
+ 
+  mapscrolling = true;
+});
+
+map.addEventListener("mouseup", (e) => {
+	if (running) stop();
+  mapscrolling = false;
+});
+
+map.addEventListener("mousemove", (e) => {
+  if (mapscrolling) {
+    
+   
+    settodate(new Date(displayed_date.getTime() + (lastx-e.offsetX)*10000));
+    lastx = e.offsetX;
+    
+
+  }
+});
+*/
+
+
+
+/*
+	html = "";
+	for (var i = 0; i < 26; i++) {
+	  html += "<span class='linuteletter'>" + String.fromCharCode(i+65) + "</span>";
+	}
+	document.getElementById('linuteLetters').innerHTML += html;
+	var linuteletter = document.getElementsByClassName('linuteletter');
+	for (var i = 0; i < 26; i++) {
+		linuteletter[i].style.color = "hsl("+i*13.85+", 100%, 50%)";
+	}
+*/
+
+ var aryIannaTimeZones = [
+    "Africa/Abidjan",
+    "Africa/Accra",
+    "Africa/Addis_Ababa",
+    "Africa/Algiers",
+    "Africa/Asmara",
+    "Africa/Asmera",
+    "Africa/Bamako",
+    "Africa/Bangui",
+    "Africa/Banjul",
+    "Africa/Bissau",
+    "Africa/Blantyre",
+    "Africa/Brazzaville",
+    "Africa/Bujumbura",
+    "Africa/Cairo",
+    "Africa/Casablanca",
+    "Africa/Ceuta",
+    "Africa/Conakry",
+    "Africa/Dakar",
+    "Africa/Dar_es_Salaam",
+    "Africa/Djibouti",
+    "Africa/Douala",
+    "Africa/El_Aaiun",
+    "Africa/Freetown",
+    "Africa/Gaborone",
+    "Africa/Harare",
+    "Africa/Johannesburg",
+    "Africa/Juba",
+    "Africa/Kampala",
+    "Africa/Khartoum",
+    "Africa/Kigali",
+    "Africa/Kinshasa",
+    "Africa/Lagos",
+    "Africa/Libreville",
+    "Africa/Lome",
+    "Africa/Luanda",
+    "Africa/Lubumbashi",
+    "Africa/Lusaka",
+    "Africa/Malabo",
+    "Africa/Maputo",
+    "Africa/Maseru",
+    "Africa/Mbabane",
+    "Africa/Mogadishu",
+    "Africa/Monrovia",
+    "Africa/Nairobi",
+    "Africa/Ndjamena",
+    "Africa/Niamey",
+    "Africa/Nouakchott",
+    "Africa/Ouagadougou",
+    "Africa/Porto-Novo",
+    "Africa/Sao_Tome",
+    "Africa/Timbuktu",
+    "Africa/Tripoli",
+    "Africa/Tunis",
+    "Africa/Windhoek",
+    "America/Adak",
+    "America/Anchorage",
+    "America/Anguilla",
+    "America/Antigua",
+    "America/Araguaina",
+    "America/Argentina/Buenos_Aires",
+    "America/Argentina/Catamarca",
+    "America/Argentina/ComodRivadavia",
+    "America/Argentina/Cordoba",
+    "America/Argentina/Jujuy",
+    "America/Argentina/La_Rioja",
+    "America/Argentina/Mendoza",
+    "America/Argentina/Rio_Gallegos",
+    "America/Argentina/Salta",
+    "America/Argentina/San_Juan",
+    "America/Argentina/San_Luis",
+    "America/Argentina/Tucuman",
+    "America/Argentina/Ushuaia",
+    "America/Aruba",
+    "America/Asuncion",
+    "America/Atikokan",
+    "America/Atka",
+    "America/Bahia",
+    "America/Bahia_Banderas",
+    "America/Barbados",
+    "America/Belem",
+    "America/Belize",
+    "America/Blanc-Sablon",
+    "America/Boa_Vista",
+    "America/Bogota",
+    "America/Boise",
+    "America/Buenos_Aires",
+    "America/Cambridge_Bay",
+    "America/Campo_Grande",
+    "America/Cancun",
+    "America/Caracas",
+    "America/Catamarca",
+    "America/Cayenne",
+    "America/Cayman",
+    "America/Chicago",
+    "America/Chihuahua",
+    "America/Coral_Harbour",
+    "America/Cordoba",
+    "America/Costa_Rica",
+    "America/Creston",
+    "America/Cuiaba",
+    "America/Curacao",
+    "America/Danmarkshavn",
+    "America/Dawson",
+    "America/Dawson_Creek",
+    "America/Denver",
+    "America/Detroit",
+    "America/Dominica",
+    "America/Edmonton",
+    "America/Eirunepe",
+    "America/El_Salvador",
+    "America/Ensenada",
+    "America/Fort_Nelson",
+    "America/Fort_Wayne",
+    "America/Fortaleza",
+    "America/Glace_Bay",
+    "America/Godthab",
+    "America/Goose_Bay",
+    "America/Grand_Turk",
+    "America/Grenada",
+    "America/Guadeloupe",
+    "America/Guatemala",
+    "America/Guayaquil",
+    "America/Guyana",
+    "America/Halifax",
+    "America/Havana",
+    "America/Hermosillo",
+    "America/Indiana/Indianapolis",
+    "America/Indiana/Knox",
+    "America/Indiana/Marengo",
+    "America/Indiana/Petersburg",
+    "America/Indiana/Tell_City",
+    "America/Indiana/Vevay",
+    "America/Indiana/Vincennes",
+    "America/Indiana/Winamac",
+    "America/Indianapolis",
+    "America/Inuvik",
+    "America/Iqaluit",
+    "America/Jamaica",
+    "America/Jujuy",
+    "America/Juneau",
+    "America/Kentucky/Louisville",
+    "America/Kentucky/Monticello",
+    "America/Knox_IN",
+    "America/Kralendijk",
+    "America/La_Paz",
+    "America/Lima",
+    "America/Los_Angeles",
+    "America/Louisville",
+    "America/Lower_Princes",
+    "America/Maceio",
+    "America/Managua",
+    "America/Manaus",
+    "America/Marigot",
+    "America/Martinique",
+    "America/Matamoros",
+    "America/Mazatlan",
+    "America/Mendoza",
+    "America/Menominee",
+    "America/Merida",
+    "America/Metlakatla",
+    "America/Mexico_City",
+    "America/Miquelon",
+    "America/Moncton",
+    "America/Monterrey",
+    "America/Montevideo",
+    "America/Montreal",
+    "America/Montserrat",
+    "America/Nassau",
+    "America/New_York",
+    "America/Nipigon",
+    "America/Nome",
+    "America/Noronha",
+    "America/North_Dakota/Beulah",
+    "America/North_Dakota/Center",
+    "America/North_Dakota/New_Salem",
+    "America/Ojinaga",
+    "America/Panama",
+    "America/Pangnirtung",
+    "America/Paramaribo",
+    "America/Phoenix",
+    "America/Port-au-Prince",
+    "America/Port_of_Spain",
+    "America/Porto_Acre",
+    "America/Porto_Velho",
+    "America/Puerto_Rico",
+    "America/Punta_Arenas",
+    "America/Rainy_River",
+    "America/Rankin_Inlet",
+    "America/Recife",
+    "America/Regina",
+    "America/Resolute",
+    "America/Rio_Branco",
+    "America/Rosario",
+    "America/Santa_Isabel",
+    "America/Santarem",
+    "America/Santiago",
+    "America/Santo_Domingo",
+    "America/Sao_Paulo",
+    "America/Scoresbysund",
+    "America/Shiprock",
+    "America/Sitka",
+    "America/St_Barthelemy",
+    "America/St_Johns",
+    "America/St_Kitts",
+    "America/St_Lucia",
+    "America/St_Thomas",
+    "America/St_Vincent",
+    "America/Swift_Current",
+    "America/Tegucigalpa",
+    "America/Thule",
+    "America/Thunder_Bay",
+    "America/Tijuana",
+    "America/Toronto",
+    "America/Tortola",
+    "America/Vancouver",
+    "America/Virgin",
+    "America/Whitehorse",
+    "America/Winnipeg",
+    "America/Yakutat",
+    "America/Yellowknife",
+    "Antarctica/Casey",
+    "Antarctica/Davis",
+    "Antarctica/DumontDUrville",
+    "Antarctica/Macquarie",
+    "Antarctica/Mawson",
+    "Antarctica/McMurdo",
+    "Antarctica/Palmer",
+    "Antarctica/Rothera",
+    "Antarctica/South_Pole",
+    "Antarctica/Syowa",
+    "Antarctica/Troll",
+    "Antarctica/Vostok",
+    "Arctic/Longyearbyen",
+    "Asia/Aden",
+    "Asia/Almaty",
+    "Asia/Amman",
+    "Asia/Anadyr",
+    "Asia/Aqtau",
+    "Asia/Aqtobe",
+    "Asia/Ashgabat",
+    "Asia/Ashkhabad",
+    "Asia/Atyrau",
+    "Asia/Baghdad",
+    "Asia/Bahrain",
+    "Asia/Baku",
+    "Asia/Bangkok",
+    "Asia/Barnaul",
+    "Asia/Beirut",
+    "Asia/Bishkek",
+    "Asia/Brunei",
+    "Asia/Calcutta",
+    "Asia/Chita",
+    "Asia/Choibalsan",
+    "Asia/Chongqing",
+    "Asia/Chungking",
+    "Asia/Colombo",
+    "Asia/Dacca",
+    "Asia/Damascus",
+    "Asia/Dhaka",
+    "Asia/Dili",
+    "Asia/Dubai",
+    "Asia/Dushanbe",
+    "Asia/Famagusta",
+    "Asia/Gaza",
+    "Asia/Harbin",
+    "Asia/Hebron",
+    "Asia/Ho_Chi_Minh",
+    "Asia/Hong_Kong",
+    "Asia/Hovd",
+    "Asia/Irkutsk",
+    "Asia/Istanbul",
+    "Asia/Jakarta",
+    "Asia/Jayapura",
+    "Asia/Jerusalem",
+    "Asia/Kabul",
+    "Asia/Kamchatka",
+    "Asia/Karachi",
+    "Asia/Kashgar",
+    "Asia/Kathmandu",
+    "Asia/Katmandu",
+    "Asia/Khandyga",
+    "Asia/Kolkata",
+    "Asia/Krasnoyarsk",
+    "Asia/Kuala_Lumpur",
+    "Asia/Kuching",
+    "Asia/Kuwait",
+    "Asia/Macao",
+    "Asia/Macau",
+    "Asia/Magadan",
+    "Asia/Makassar",
+    "Asia/Manila",
+    "Asia/Muscat",
+    "Asia/Nicosia",
+    "Asia/Novokuznetsk",
+    "Asia/Novosibirsk",
+    "Asia/Omsk",
+    "Asia/Oral",
+    "Asia/Phnom_Penh",
+    "Asia/Pontianak",
+    "Asia/Pyongyang",
+    "Asia/Qatar",
+    "Asia/Qyzylorda",
+    "Asia/Rangoon",
+    "Asia/Riyadh",
+    "Asia/Saigon",
+    "Asia/Sakhalin",
+    "Asia/Samarkand",
+    "Asia/Seoul",
+    "Asia/Shanghai",
+    "Asia/Singapore",
+    "Asia/Srednekolymsk",
+    "Asia/Taipei",
+    "Asia/Tashkent",
+    "Asia/Tbilisi",
+    "Asia/Tehran",
+    "Asia/Tel_Aviv",
+    "Asia/Thimbu",
+    "Asia/Thimphu",
+    "Asia/Tokyo",
+    "Asia/Tomsk",
+    "Asia/Ujung_Pandang",
+    "Asia/Ulaanbaatar",
+    "Asia/Ulan_Bator",
+    "Asia/Urumqi",
+    "Asia/Ust-Nera",
+    "Asia/Vientiane",
+    "Asia/Vladivostok",
+    "Asia/Yakutsk",
+    "Asia/Yangon",
+    "Asia/Yekaterinburg",
+    "Asia/Yerevan",
+    "Atlantic/Azores",
+    "Atlantic/Bermuda",
+    "Atlantic/Canary",
+    "Atlantic/Cape_Verde",
+    "Atlantic/Faeroe",
+    "Atlantic/Faroe",
+    "Atlantic/Jan_Mayen",
+    "Atlantic/Madeira",
+    "Atlantic/Reykjavik",
+    "Atlantic/South_Georgia",
+    "Atlantic/St_Helena",
+    "Atlantic/Stanley",
+    "Australia/ACT",
+    "Australia/Adelaide",
+    "Australia/Brisbane",
+    "Australia/Broken_Hill",
+    "Australia/Canberra",
+    "Australia/Currie",
+    "Australia/Darwin",
+    "Australia/Eucla",
+    "Australia/Hobart",
+    "Australia/LHI",
+    "Australia/Lindeman",
+    "Australia/Lord_Howe",
+    "Australia/Melbourne",
+    "Australia/NSW",
+    "Australia/North",
+    "Australia/Perth",
+    "Australia/Queensland",
+    "Australia/South",
+    "Australia/Sydney",
+    "Australia/Tasmania",
+    "Australia/Victoria",
+    "Australia/West",
+    "Australia/Yancowinna",
+    "Brazil/Acre",
+    "Brazil/DeNoronha",
+    "Brazil/East",
+    "Brazil/West",
+    "CET",
+    "CST6CDT",
+    "Canada/Atlantic",
+    "Canada/Central",
+    "Canada/Eastern",
+    "Canada/Mountain",
+    "Canada/Newfoundland",
+    "Canada/Pacific",
+    "Canada/Saskatchewan",
+    "Canada/Yukon",
+    "Chile/Continental",
+    "Chile/EasterIsland",
+    "Cuba",
+    "EET",
+    "EST",
+    "EST5EDT",
+    "Egypt",
+    "Eire",
+    "Etc/GMT",
+    "Etc/GMT+0",
+    "Etc/GMT+1",
+    "Etc/GMT+10",
+    "Etc/GMT+11",
+    "Etc/GMT+12",
+    "Etc/GMT+2",
+    "Etc/GMT+3",
+    "Etc/GMT+4",
+    "Etc/GMT+5",
+    "Etc/GMT+6",
+    "Etc/GMT+7",
+    "Etc/GMT+8",
+    "Etc/GMT+9",
+    "Etc/GMT-0",
+    "Etc/GMT-1",
+    "Etc/GMT-10",
+    "Etc/GMT-11",
+    "Etc/GMT-12",
+    "Etc/GMT-13",
+    "Etc/GMT-14",
+    "Etc/GMT-2",
+    "Etc/GMT-3",
+    "Etc/GMT-4",
+    "Etc/GMT-5",
+    "Etc/GMT-6",
+    "Etc/GMT-7",
+    "Etc/GMT-8",
+    "Etc/GMT-9",
+    "Etc/GMT0",
+    "Etc/Greenwich",
+    "Etc/UCT",
+    "Etc/UTC",
+    "Etc/Universal",
+    "Etc/Zulu",
+    "Europe/Amsterdam",
+    "Europe/Andorra",
+    "Europe/Astrakhan",
+    "Europe/Athens",
+    "Europe/Belfast",
+    "Europe/Belgrade",
+    "Europe/Berlin",
+    "Europe/Bratislava",
+    "Europe/Brussels",
+    "Europe/Bucharest",
+    "Europe/Budapest",
+    "Europe/Busingen",
+    "Europe/Chisinau",
+    "Europe/Copenhagen",
+    "Europe/Dublin",
+    "Europe/Gibraltar",
+    "Europe/Guernsey",
+    "Europe/Helsinki",
+    "Europe/Isle_of_Man",
+    "Europe/Istanbul",
+    "Europe/Jersey",
+    "Europe/Kaliningrad",
+    "Europe/Kiev",
+    "Europe/Kirov",
+    "Europe/Lisbon",
+    "Europe/Ljubljana",
+    "Europe/London",
+    "Europe/Luxembourg",
+    "Europe/Madrid",
+    "Europe/Malta",
+    "Europe/Mariehamn",
+    "Europe/Minsk",
+    "Europe/Monaco",
+    "Europe/Moscow",
+    "Europe/Nicosia",
+    "Europe/Oslo",
+    "Europe/Paris",
+    "Europe/Podgorica",
+    "Europe/Prague",
+    "Europe/Riga",
+    "Europe/Rome",
+    "Europe/Samara",
+    "Europe/San_Marino",
+    "Europe/Sarajevo",
+    "Europe/Saratov",
+    "Europe/Simferopol",
+    "Europe/Skopje",
+    "Europe/Sofia",
+    "Europe/Stockholm",
+    "Europe/Tallinn",
+    "Europe/Tirane",
+    "Europe/Tiraspol",
+    "Europe/Ulyanovsk",
+    "Europe/Uzhgorod",
+    "Europe/Vaduz",
+    "Europe/Vatican",
+    "Europe/Vienna",
+    "Europe/Vilnius",
+    "Europe/Volgograd",
+    "Europe/Warsaw",
+    "Europe/Zagreb",
+    "Europe/Zaporozhye",
+    "Europe/Zurich",
+    "GB",
+    "GB-Eire",
+    "GMT",
+    "GMT+0",
+    "GMT-0",
+    "GMT0",
+    "Greenwich",
+    "HST",
+    "Hongkong",
+    "Iceland",
+    "Indian/Antananarivo",
+    "Indian/Chagos",
+    "Indian/Christmas",
+    "Indian/Cocos",
+    "Indian/Comoro",
+    "Indian/Kerguelen",
+    "Indian/Mahe",
+    "Indian/Maldives",
+    "Indian/Mauritius",
+    "Indian/Mayotte",
+    "Indian/Reunion",
+    "Iran",
+    "Israel",
+    "Jamaica",
+    "Japan",
+    "Kwajalein",
+    "Libya",
+    "MET",
+    "MST",
+    "MST7MDT",
+    "Mexico/BajaNorte",
+    "Mexico/BajaSur",
+    "Mexico/General",
+    "NZ",
+    "NZ-CHAT",
+    "Navajo",
+    "PRC",
+    "PST8PDT",
+    "Pacific/Apia",
+    "Pacific/Auckland",
+    "Pacific/Bougainville",
+    "Pacific/Chatham",
+    "Pacific/Chuuk",
+    "Pacific/Easter",
+    "Pacific/Efate",
+    "Pacific/Enderbury",
+    "Pacific/Fakaofo",
+    "Pacific/Fiji",
+    "Pacific/Funafuti",
+    "Pacific/Galapagos",
+    "Pacific/Gambier",
+    "Pacific/Guadalcanal",
+    "Pacific/Guam",
+    "Pacific/Honolulu",
+    "Pacific/Johnston",
+    "Pacific/Kiritimati",
+    "Pacific/Kosrae",
+    "Pacific/Kwajalein",
+    "Pacific/Majuro",
+    "Pacific/Marquesas",
+    "Pacific/Midway",
+    "Pacific/Nauru",
+    "Pacific/Niue",
+    "Pacific/Norfolk",
+    "Pacific/Noumea",
+    "Pacific/Pago_Pago",
+    "Pacific/Palau",
+    "Pacific/Pitcairn",
+    "Pacific/Pohnpei",
+    "Pacific/Ponape",
+    "Pacific/Port_Moresby",
+    "Pacific/Rarotonga",
+    "Pacific/Saipan",
+    "Pacific/Samoa",
+    "Pacific/Tahiti",
+    "Pacific/Tarawa",
+    "Pacific/Tongatapu",
+    "Pacific/Truk",
+    "Pacific/Wake",
+    "Pacific/Wallis",
+    "Pacific/Yap",
+    "Poland",
+    "Portugal",
+    "ROC",
+    "ROK",
+    "Singapore",
+    "Turkey",
+    "UCT",
+    "US/Alaska",
+    "US/Aleutian",
+    "US/Arizona",
+    "US/Central",
+    "US/East-Indiana",
+    "US/Eastern",
+    "US/Hawaii",
+    "US/Indiana-Starke",
+    "US/Michigan",
+    "US/Mountain",
+    "US/Pacific",
+    "US/Pacific-New",
+    "US/Samoa",
+    "UTC",
+    "Universal",
+    "W-SU",
+    "WET",
+    "Zulu",
+  ];
+
+
+
+
+let select = document.getElementById("timezone");
+
+for(var i = 0; i < aryIannaTimeZones.length; i++) {
+  var opt = aryIannaTimeZones[i];
+  var el = document.createElement("option");
+  el.textContent = opt;
+  el.value = opt;
+  select.appendChild(el);
+}
+
+function changeTimeZone(tz){
+	  stimezone = tz
+		localtimeoffset = getTimezoneOffset(stimezone);
+    olddigits = [0,0,0,0,0,0,0,0,0,0,0,0];// force repositionLetterLabels
+    
+		lourclock();
+  	hourclock();
+	}	
+
+function getTimezoneOffset(tz){
+  var h = displayed_date.toLocaleString("en-US", {
+    timeZone: tz,
+    timeZoneName: 'shortOffset'
+  }).split('GMT')[1];
+  if (isNaN(h.valueOf())) {
+    return (h.split(':')[0].valueOf() * -60 - h.split(':')[1].valueOf() );
+   }
+  return h.valueOf() * -60;
+}	
+
+select.addEventListener("change", (event) => {
+  changeTimeZone(event.target.value);
+});
+
+select.value = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+changeTimeZone(select.value);
+
+start();
+
+
+</script>
+
+
+</html>
+
