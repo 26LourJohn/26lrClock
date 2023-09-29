@@ -1,14 +1,15 @@
 # 26lrClock
 
-26 Lour Clock App shows Date and Time with 26 Letters.  
+26 Lour Clock App shows Date : Time with 26 Letters.  
 No Time Zones.  
-No Daylight Savings.  
+No Daylight Savings.    
 
-Time is 26 "Lours" A-Z. :A is 12:00 PM GMT (7:00 AM EST, etc)  
-Date is Julian Day. Day goes from A-N, so A: is always Monday, G: Sunday, H: Monday, N: Sunday
+26 "Lours" :A - :Z in a Day. :A is Noon GMT (7:00 AM EST, etc).  
+
+14 Days A: - N: in a Leek. A: is Monday, B: Tuesday, N: Sunday.
 
 26lrClock.js contains functions to convert dates to and from 26Lr Time  
-
+26lrClock.html is analog clock showing local time in any time zone.
 
 
 
