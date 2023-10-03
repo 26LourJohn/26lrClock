@@ -1,0 +1,55 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<script type="text/javascript" src="26lrClock.js"></script>
+<title>HowardDev.com</title>
+<style>
+
+body {
+	font-size:1.2em;
+	background: #000;
+  font-family: Tahoma, 'Geneva', Verdana;
+  color:#ddf;
+}
+a {color:#88e;}
+
+</style>
+
+</head>
+
+<body>
+  <span style="float:left;margin:2em">
+    <p><a href="26lrClock.html"><img src="26lrClock.jpeg" alt="icon" align="left" height="120px"/></p>
+  	<p><img src="26lrClockScreenshot.jpeg" alt="screenshot" border="1px" style="width:90px;margin:20px" /></a></p>
+	  <p><a href="26lrClock.html">Install 26lr Clock App</a></p>
+	  <p><a href="26lrSundial.html">26lr Sundial</a></p>
+	  <p><a href="26lrCalendar.html">26lr Calendar</a></p>
+		<p><a href="mailto:info@howarddev.com">info@howarddev.com</a></p>
+ </span>
+ <span class="description">
+    <p>26 Lour Clock uses letters to tell date : time.</p>
+    <p><span id="lrclock"></span></p>
+    <p>There are 26 Lours in a Day.</p>
+    <p>:A is 12 Noon in London, 7:00 AM EST, 10 AM PST</p>
+    <p>Each Lour is ~55 minutes long.</p>
+    <p>Lours are divided into 26 Linutes (each ~2 minutes)</p>
+    <p>Leconds are ~5 seconds, Licros ~189 ms, and Lanos ~7 ms.<p>  
+    <p>:A is 12 Noon in London, 7:00 AM EST, 10 AM PST</p>
+ 		<p>Date is Julian Date (<span id="JulianDay"></span>)</p>
+    <p>14 Days is a Leek (A-N)</p>
+    <p>A: is Monday, B: Tuesday, H: Monday, N: Sunday.</p>
+    <p>26 Leeks is a Lear (364 Days).</p>
+		<p>26 Lears is a Lentury, 26 Lenturies is a Lillenium (~673 Years).</p>
+		<p>KAAAA: is Monday, November 25, 2024!</p>
+</span>
+</body>
+
+<script>
+setInterval(function() {
+	//functions defined in 26lrClock.js
+  document.getElementById('lrclock').innerText = new Date().to26lr();
+  document.getElementById('JulianDay').innerText = new Date().toJulian();
+}, 7);
+</script>
+</html>
+

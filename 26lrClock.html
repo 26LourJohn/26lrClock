@@ -58,36 +58,6 @@ body {
   //font-family: Menlo-Bold, monospace;
   //color: #bbb;
 }
-/*
-#map{
-	position: absolute;
-	//background-position-x: center;
-  margin-left: -400px;
-  background-image: url("vecteezy_map.jpg");
-  background-size: contain;
-  background-repeat: repeat-x;
-  height:100px;
-  width:80%;
-     
-}
-
-#daycolor{
-	position: absolute;
-	background: linear-gradient(
-    to right,
-    blue,
-    indigo,
-    violet,
-    red,
-    orange,
-    yellow,
-    green
-  );
-   height:100px;
-   width:100%;
-     
-}
-*/
 
 .hand {
   position: absolute;
@@ -206,7 +176,7 @@ function lourclock(){
   
 	for (var i=running?9:10;i>=0;i--){
       if (i!=5){
-        if(running && olddigits[i]==digits[i]) break;
+        //if(running && olddigits[i]==digits[i]) break; //bug
         lourclock[i].style.color = "hsl("+((digits[i].charCodeAt(0)-65)*13.85) + ", 100%, 50%)";
       } 
     	lourclock[i].innerHTML=digits[i];
@@ -220,12 +190,10 @@ function lourclock(){
 	  	if (l>25) l=0;
 			h = l/13 - (localtimeoffset/720);
 			r =  r -= 3;
-			//r = i>12?120:90;
 			var x =  0 + (r * Math.sin(h*2*Math.PI));
 			var y =  0 - (r * Math.cos(h*2*Math.PI));
 			letter[l].style.translate = x+"px "+y+"px";
 			letter[l].style.scale = (36-i)/36;
-			//letter[l].style.color = "hsl("+l*13.85+ ", 100%, "+ (60-i*2) +"%)";
 			l++;
 		}
   }
@@ -312,51 +280,6 @@ document.getElementById('lourClock').addEventListener('click', (e) => {
 document.getElementById('datestring').addEventListener('click', (e) => {
 //	changeTimeZone("Asia/Calcutta");
 });
-
-
-
-
-/*
-map = document.getElementById('map');
-
-
-map.addEventListener("mousedown", (e) => {
-	if (running) stop();
-  lastx = e.offsetX;
- 
-  mapscrolling = true;
-});
-
-map.addEventListener("mouseup", (e) => {
-	if (running) stop();
-  mapscrolling = false;
-});
-
-map.addEventListener("mousemove", (e) => {
-  if (mapscrolling) {
-    
-   
-    settodate(new Date(displayed_date.getTime() + (lastx-e.offsetX)*10000));
-    lastx = e.offsetX;
-    
-
-  }
-});
-*/
-
-
-
-/*
-	html = "";
-	for (var i = 0; i < 26; i++) {
-	  html += "<span class='linuteletter'>" + String.fromCharCode(i+65) + "</span>";
-	}
-	document.getElementById('linuteLetters').innerHTML += html;
-	var linuteletter = document.getElementsByClassName('linuteletter');
-	for (var i = 0; i < 26; i++) {
-		linuteletter[i].style.color = "hsl("+i*13.85+", 100%, 50%)";
-	}
-*/
 
  var aryIannaTimeZones = [
     "Africa/Abidjan",
@@ -953,9 +876,6 @@ map.addEventListener("mousemove", (e) => {
     "Zulu",
   ];
 
-
-
-
 let select = document.getElementById("timezone");
 
 for(var i = 0; i < aryIannaTimeZones.length; i++) {
@@ -1001,4 +921,3 @@ start();
 
 
 </html>
-
