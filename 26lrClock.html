@@ -930,26 +930,26 @@ for(var i = 0; i < storedTimeZones.length; i++) {
 }
 
 function changeTimeZone(tz){
-
   var latlong = tz.split(",");
   if (latlong.length>1){
-    stimezone = "Sun";
-    document.getElementById('minutehand').style.backgroundColor = "yellow";
-    document.getElementById('secondhand').style.backgroundColor = "yellow";
-    localtimeoffset = latlong[1]/180*720*-1;
+    //stimezone = "Sun";
+    setClockColors("yellow");
+    localtimeoffset = latlong[1]/180*720*-1 - displayed_date.equationoftime();
   }else{
     stimezone = tz;
-    document.getElementById('minutehand').style.backgroundColor = "grey";
-    document.getElementById('secondhand').style.backgroundColor = "grey";
-    localtimeoffset = getTimezoneOffset(stimezone);
+    localtimeoffset = getTimezoneOffset(stimezone)
+    setClockColors("grey");
   }
-
   olddigits = [0,0,0,0,0,0,0,0,0,0,0,0]; //force repositionLetterLabels
-
-  
   lourclock();
   hourclock();
 }	
+
+function setClockColors(c){
+  document.getElementById('minutehand').style.backgroundColor = c
+  document.getElementById('secondhand').style.backgroundColor = c;
+  for (var i=0;i<12;i++)number[i].style.color = c;
+}
 
 function getTimezoneOffset(tz){
   var h = displayed_date.toLocaleString("en-US", {

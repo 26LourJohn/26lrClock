@@ -1,7 +1,5 @@
-
 // 26lr Clock Date Functions
 // by John Howard JZYTH 
-
 
 function DateFrom26Lr(s) {
 	if (s.indexOf(":")==-1) s = ":"+s;	
