@@ -34,6 +34,13 @@ body {
   font-family: Menlo-Bold, monospace;
 }
 .linuteletter{
+  position: absolute;
+  left: 50%;
+	//width:40px;
+	//border-radius: 50%;
+	//background: #999;
+	margin-top:160px;
+	//margin-left: -2px;
 	font-size: 10px;
   font-family: Menlo-Bold, monospace;
 }
@@ -50,7 +57,6 @@ body {
 
 #lourclock{margin: 50 0;}
 #hourclock{margin: 20 0; height:360px;}
-#linuteLetters{width: 360px;}
 
 #datestring{
   margin: 0 20px 0 0;
@@ -68,28 +74,28 @@ body {
 }
 
 #hourhand {
-	z-index: 10;
-  width: 8px;
-  height: 80px;
+	//z-index: 10;
+  width: 6px;
+  height: 50px;
   background: #999;
-  margin-left: -4px;
-  margin-top: 80px;
+  margin-left: -3px;
+  margin-top: 110px;
 }
 
 #minutehand {
   width: 4px;
-  height: 100px;
+  height: 60px;
   background: #999;
   margin-left: -2px;
-  margin-top: 60px;
+  margin-top: 100px;
 }
 
 #secondhand {
   width: 2px;
-  height: 100px;
+  height: 64px;
   background: #999;
   margin-left: -1px;
-  margin-top: 60px;
+  margin-top: 96px;
 }
 
 
@@ -110,11 +116,10 @@ body {
 		<span alt="licros" class="place">-</span>
     <span alt="lanos" class="place" id="lanos">-</span>
 	</div>
-	<div id="linuteLetters"></div>
 	<div id="hourClock">
-	    <div class="hand" id="hourhand"></div>
 	    <div class="hand" id="minutehand"></div>
-	    <div class="hand" id="secondhand"></div>
+      <div class="hand" id="secondhand"></div>
+      <div class="hand" id="hourhand"></div>
 	</div>
  <div>
 	<span id="datestring"></span><span id="timestring"></span>
@@ -137,20 +142,29 @@ var html = "";
 for (var i = 0; i < 26; i++) {
   html += "<div class='letter'>" + String.fromCharCode(i+65) + "</div>";
 }
+
+
+for (var i = 0; i < 26; i++) {
+  html += "<div class='linuteletter'>" + String.fromCharCode(i+65) + "</div>";
+}
+
 for (var i = 1; i < 13; i++) {
   html += "<div class='number'>" + i + "</div>";
 }
 document.getElementById('hourClock').innerHTML += html;
 
-var letter = document.getElementsByClassName('letter');
-for (var i = 0; i < 26; i++) {
-  letter[i].style.color = "hsl("+i*13.85+", 100%, 50%)";
-}
 
 var number = document.getElementsByClassName('number');
+var linuteletter = document.getElementsByClassName('linuteletter');
+var letter = document.getElementsByClassName('letter');
+
+for (var i = 0; i < 26; i++) {
+  letter[i].style.color = "hsl("+i*13.85+", 100%, 50%)";
+  linuteletter[i].style.color = "hsl("+i*13.85+", 100%, 50%)";
+}
 
 for (var i = 0; i < 12; i++) {
-    var r = 140;
+    var r = 85;
     var h = (i+1)/12;
     var x =  0 + (r * Math.sin(h*2*Math.PI));
     var y =  150 - (r * Math.cos(h*2*Math.PI));
@@ -167,7 +181,7 @@ var analogtimer,licrotimer,lanotimer;
 
 var displayed_date = new Date();
 var olddigits = [0,0,0,0,0,0,0,0,0,0,0,0];
-var localtimeOffset;
+var localtimeOffset; //in minutes from GMT
 var stimezone;
 
 function lourclock(){
@@ -176,32 +190,46 @@ function lourclock(){
   
 	for (var i=running?9:10;i>=0;i--){
       if (i!=5){
-        //if(running && olddigits[i]==digits[i]) break; //bug
+       // if(running && olddigits[i]==digits[i]) break; //bug
         lourclock[i].style.color = "hsl("+((digits[i].charCodeAt(0)-65)*13.85) + ", 100%, 50%)";
       } 
     	lourclock[i].innerHTML=digits[i];
   }
+
+  var linute = digits[7].charCodeAt(0)-65;
+  for (var i=0;i<26;i++){
+			linuteletter[i].style.visibility = linute==i?"visible":"hidden";
+  }
   
-  if(i<=6){
+  if(olddigits[6]!=digits[6]){ // i<=6){
   	var l = digits[6].charCodeAt(0)-65;
-  	var h = 0;
-		var r = 110;
-		for (var i=0;i<26;i++){
+  	var h = l/13 - (localtimeoffset/720);
+    var r = 150;
+   
+    var hl = h;
+    for (var i=0;i<26;i++){
+      hl += (1/338);
+			var x =  0 + (r * Math.sin(hl*2*Math.PI));
+			var y =  0 - (r * Math.cos(hl*2*Math.PI));
+			linuteletter[i].style.translate = x+"px "+y+"px";
+    }
+    
+    r = 100;
+    for (var i=0;i<26;i++){
 	  	if (l>25) l=0;
 			h = l/13 - (localtimeoffset/720);
-			r =  r -= 3;
+			r += 2;
 			var x =  0 + (r * Math.sin(h*2*Math.PI));
 			var y =  0 - (r * Math.cos(h*2*Math.PI));
 			letter[l].style.translate = x+"px "+y+"px";
 			letter[l].style.scale = (36-i)/36;
 			l++;
-		}
+    }
   }
   lourclock[5].style.color = "hsl("+ displayed_date.timepart()*360+", 100%, 50%)";
   lanos = digits[10].charCodeAt(0)-65;	
   olddigits = digits;
 }
-
 
 var lanos = 0;
 function updatelanos(){
@@ -212,7 +240,7 @@ function updatelanos(){
 }
 
 function hourclock() {
-	var localsecondsintoday = (Math.floor(86400 * displayed_date.timepart()) + 43200 - (localtimeoffset * 60)) % 86400;
+  var localsecondsintoday = (Math.floor(86400 * displayed_date.timepart()) + 43200 - (localtimeoffset * 60)) % 86400;
 	var hDeg = 360 * (localsecondsintoday % 43200)/43200;
 	var mDeg = 360 * (localsecondsintoday % 3600)/3600;
 	var sDeg = 360 * (localsecondsintoday % 60)/60;
@@ -220,6 +248,7 @@ function hourclock() {
   document.getElementById('hourhand').style.backgroundColor = "hsl("+ displayed_date.timepart()*360+", 100%, 50%)";
   document.getElementById('minutehand').style.transform = "rotate("+mDeg+"deg)";
   document.getElementById('secondhand').style.transform = "rotate("+sDeg+"deg)";
+
   document.getElementById('datestring').innerHTML = displayed_date.toLocaleDateString("en-US",{
     timeZone: stimezone,
     weekday: "short",
@@ -232,6 +261,8 @@ function hourclock() {
     timeZoneName: 'short'
   });
 }
+
+
 
 function start(){
 	running = true;
@@ -248,7 +279,7 @@ function runLourclock(){
 }
 
 function runHourclock(){
-	settoDate(new Date());
+	//settoDate(new Date());
 	hourclock();
 }
 
@@ -261,7 +292,7 @@ function stop(){
 
 function settoDate(d){
 	displayed_date = d;
-	localtimeoffset = getTimezoneOffset(stimezone);
+//	localtimeoffset = getTimezoneOffset(stimezone); why was this line here?
 }
 
 document.getElementById('dateinput').addEventListener("change", (event) => {
@@ -876,24 +907,49 @@ document.getElementById('datestring').addEventListener('click', (e) => {
     "Zulu",
   ];
 
+  localStorage.clear();
+var storedTimeZones = JSON.parse(localStorage.getItem("storedTimeZones") || "[]");
+if (storedTimeZones.length==0){
+  storedTimeZones = [
+    ["Sundial Boston","42.361145, -71.057083"],["Sundial Detroit","42.331429, -83.045753"],
+    ["Eastern US","America/New_York"],["Pacific US","America/Los_Angeles"],
+    ["Tokyo","Asia/Tokyo"],["Moscow","Europe/Moscow"],["Berlin","Europe/Berlin"],["London","Europe/London"],
+    ["Add Timezone","AddTimezone"],["Add Sundial","AddSundial"],["Remove This","Remove"]
+  ];
+  localStorage.setItem('storedTimeZones',JSON.stringify(storedTimeZones));
+} 
+
 let select = document.getElementById("timezone");
 
-for(var i = 0; i < aryIannaTimeZones.length; i++) {
-  var opt = aryIannaTimeZones[i];
+for(var i = 0; i < storedTimeZones.length; i++) {
+  var opt = storedTimeZones[i];
   var el = document.createElement("option");
-  el.textContent = opt;
-  el.value = opt;
+  el.textContent = opt[0];
+  el.value = opt[1];
   select.appendChild(el);
 }
 
 function changeTimeZone(tz){
-	  stimezone = tz
-		localtimeoffset = getTimezoneOffset(stimezone);
-    olddigits = [0,0,0,0,0,0,0,0,0,0,0,0];// force repositionLetterLabels
-    
-		lourclock();
-  	hourclock();
-	}	
+
+  var latlong = tz.split(",");
+  if (latlong.length>1){
+    stimezone = "Sun";
+    document.getElementById('minutehand').style.backgroundColor = "yellow";
+    document.getElementById('secondhand').style.backgroundColor = "yellow";
+    localtimeoffset = latlong[1]/180*720*-1;
+  }else{
+    stimezone = tz;
+    document.getElementById('minutehand').style.backgroundColor = "grey";
+    document.getElementById('secondhand').style.backgroundColor = "grey";
+    localtimeoffset = getTimezoneOffset(stimezone);
+  }
+
+  olddigits = [0,0,0,0,0,0,0,0,0,0,0,0]; //force repositionLetterLabels
+
+  
+  lourclock();
+  hourclock();
+}	
 
 function getTimezoneOffset(tz){
   var h = displayed_date.toLocaleString("en-US", {
@@ -916,8 +972,6 @@ changeTimeZone(select.value);
 
 start();
 
-
 </script>
-
 
 </html>
