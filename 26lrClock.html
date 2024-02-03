@@ -17,6 +17,7 @@ body {
   font-family: Tahoma, 'Geneva', Verdana;
     color:#cce;
 }
+
 .place{
 	font-size:45px;
 	border-radius: 10%;
@@ -55,15 +56,12 @@ body {
   color: #bbb;
 }
 
-#lourclock{margin: 50 0;}
-#hourclock{margin: 20 0; height:360px;}
-
-#datestring{
-  margin: 0 20px 0 0;
-  //font-size: 18px;
-  //font-family: Menlo-Bold, monospace;
-  //color: #bbb;
-}
+#lourclock{margin: 50 0 30 0;}
+#zoneDiv{margin: auto; width:360px;}
+#zoneName{float:left; margin: -20; }
+#zoneInfo{float:right; margin: -20;}
+#hourclock{ margin: 0 0; height:360px;}
+#datestring{margin: 0 0px 0 0;}
 
 .hand {
   position: absolute;
@@ -104,9 +102,9 @@ body {
   z-index: 1;
   left: 0;
   top: 0;
-  width: 100%; /* Full width */
-  height: 100%; /* Full height */
-  overflow: auto; /* Enable scroll if needed */
+  width: 100%;
+  height: 100%;
+  overflow: auto;
   background-color: rgb(0,0,0); /* Fallback color */
   background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
 }
@@ -116,15 +114,9 @@ body {
   padding: 20px;
   border: 1px solid #888;
   border-radius: 5px;
-  width: 300px; /* Could be more or less, depending on screen size */
+  width: 300px;
 }
-/* The Close Button */
-.close {
-  color: #aaa;
-  float: right;
-  font-size: 28px;
-  font-weight: bold;
-}
+
 
 </style>
 </head>
@@ -142,42 +134,43 @@ body {
 		<span class="place">-</span>
 		<span alt="licros" class="place">-</span>
     <span alt="lanos" class="place" id="lanos">-</span>
-	</div>
-	<div id="hourClock">
-	    <div class="hand" id="minutehand"></div>
-      <div class="hand" id="secondhand"></div>
-      <div class="hand" id="hourhand"></div>
-	</div>
- <div>
-	<span id="datestring"></span><span id="timestring"></span>
-</div>
+  </div>
+   
+ 	<div id="hourClock">
+    <div id="zoneDiv"><span id="zoneName"></span> <span id="zoneInfo"></span></div>
+    <div class="hand" id="minutehand"></div>
+    <div class="hand" id="secondhand"></div>
+    <div class="hand" id="hourhand"></div>
+  </div>
+  
+  <div>
+    <span id="datestring"></span> : <span id="timestring"></span>
+  </div>
 <br>
-<select name="timezone" id="timezone">
-</select><br>
 <label for="dateinput">Set to:</label>
 <input type="text" id="dateinput" >
 
 <div id="HelpText">
     <p><a href="http://www.howarddev.com">HowardDev</a></p>
 </div>
+<div id="zoneDiv"><span id="zoneName"></span> <span id="zoneInfo"></span></div> 
 
 <div id="AddTimezoneBox" class="modal">
   <div class="modal-content">
-    <span class="close">&times;</span>
-    <div id="AddTimezone">
-      <p>Add a TimeZone:</p>
-      <select name="timezonefulllist" id="timezonefulllist">
-      </select>
-    </div>
-    <div id="AddSundial">
-      <p>Add Sundial Latitude, Longitude:</p>
-      <button id="getloc" type="button">Get Location</button>
-      <input type="text" id="latlong">
-    </div>
-    <br>
+    <p>Local Time:</p>
     <label for="timezonename">Display Name:</label>
-    <input type="text" id="timezonename" >
+    <input type="text" id="timezonename">
+    <br>
+    <label for="timezonefulllist">Zone:</label>
+    <select name="timezonefulllist" id="timezonefulllist"></select>
+    <br>
+    <button id="getloc" type="button">Get Loc</button>
+    <input type="text" id="latlong">
+    <button id="btnGetTimezone" type="button">Get Zone</button>
+    <br>
+    <button id="btnRemoveZone">Remove</button>
     <button id="btnAddZone">Add</button>
+    <button id="btnCloseZoneBox">Done</button>
   </div>
 </div>
 </body>
@@ -189,12 +182,9 @@ var html = "";
 for (var i = 0; i < 26; i++) {
   html += "<div class='letter'>" + String.fromCharCode(i+65) + "</div>";
 }
-
-
 for (var i = 0; i < 26; i++) {
   html += "<div class='linuteletter'>" + String.fromCharCode(i+65) + "</div>";
 }
-
 for (var i = 1; i < 13; i++) {
   html += "<div class='number'>" + i + "</div>";
 }
@@ -211,7 +201,7 @@ for (var i = 0; i < 26; i++) {
 }
 
 for (var i = 0; i < 12; i++) {
-    var r = 85;
+    var r = 160;
     var h = (i+1)/12;
     var x =  0 + (r * Math.sin(h*2*Math.PI));
     var y =  150 - (r * Math.cos(h*2*Math.PI));
@@ -251,7 +241,7 @@ function lourclock(){
   if(olddigits[6]!=digits[6]){ // i<=6){
   	var l = digits[6].charCodeAt(0)-65;
   	var h = l/13 - (localtimeoffset/720);
-    var r = 150;
+    var r = 140;
    
     var hl = h;
     for (var i=0;i<26;i++){
@@ -261,7 +251,7 @@ function lourclock(){
 			linuteletter[i].style.translate = x+"px "+y+"px";
     }
     
-    r = 100;
+    r = 80;
     for (var i=0;i<26;i++){
 	  	if (l>25) l=0;
 			h = l/13 - (localtimeoffset/720);
@@ -278,7 +268,7 @@ function lourclock(){
   olddigits = digits;
 }
 
-var lanos = 0;
+var lanos = 0; //reduces cpu by fudging lanos digit? 
 function updatelanos(){
 	if (lanos>25) lanos = 0;
 	document.getElementById('lanos').innerHTML=String.fromCharCode(lanos+65);
@@ -288,6 +278,7 @@ function updatelanos(){
 
 function hourclock() {
   var localsecondsintoday = (Math.floor(86400 * displayed_date.timepart()) + 43200 - (localtimeoffset * 60)) % 86400;
+  //if (isAM == localsecondsintoday < 43200)
 	var hDeg = 360 * (localsecondsintoday % 43200)/43200;
 	var mDeg = 360 * (localsecondsintoday % 3600)/3600;
 	var sDeg = 360 * (localsecondsintoday % 60)/60;
@@ -310,6 +301,7 @@ function hourclock() {
 }
 
 function start(){
+  refreshTimezone();
 	running = true;
 	runLourclock();
   runHourclock();
@@ -319,12 +311,12 @@ function start(){
 }
 
 function runLourclock(){
-	settoDate(new Date());
+	displayed_date = new Date();
 	lourclock();
 }
 
 function runHourclock(){
-	//settoDate(new Date());
+	displayed_date = new Date();
 	hourclock();
 }
 
@@ -335,18 +327,12 @@ function stop(){
   clearInterval(secondtimer);
 }
 
-function settoDate(d){
-	displayed_date = d;
-//	localtimeoffset = getTimezoneOffset(stimezone); why was this line here?
-}
-
 document.getElementById('dateinput').addEventListener("change", (event) => {
 	stop();
 	var d = new Date(event.target.value);
 	if (isNaN(d)) d = DateFrom26Lr(event.target.value); 
-  settoDate(d);
-  lourclock();
-  hourclock();
+  displayed_date = d;
+  refreshTimezone();
 });
 
 document.getElementById('lourClock').addEventListener('click', (e) => {
@@ -354,7 +340,7 @@ document.getElementById('lourClock').addEventListener('click', (e) => {
 });
 
 document.getElementById('datestring').addEventListener('click', (e) => {
-//	changeTimeZone("Asia/Calcutta");
+
 });
 
  var fulllistTimezones = [
@@ -952,31 +938,25 @@ document.getElementById('datestring').addEventListener('click', (e) => {
     "Zulu",
   ];
 
-//  localStorage.clear();
+  localStorage.clear();
 var storedTimeZones = JSON.parse(localStorage.getItem("storedTimeZones") || "[]");
 var selectedTimeZone = localStorage.getItem("selectedTimeZone") || 0;
 
 if (storedTimeZones.length==0){
-  storedTimeZones = [
-    ["Sundial Boston","42.361145, -71.057083"],["Sundial Detroit","42.331429, -83.045753"],
-    ["Eastern US","America/New_York"],["Pacific US","America/Los_Angeles"],
-    ["Tokyo","Asia/Tokyo"],["Moscow","Europe/Moscow"],["Berlin","Europe/Berlin"],["London","Europe/London"],
-    ["Add Timezone","AddTimezone"],["Add Sundial","AddSundial"],["Remove This","Remove"]
+  storedTimeZones = [ 
+    ["Sundial Boston","America/New_York","42.361145, -71.057083"],
+    ["Sundial Detroit","America/New_York","42.331429, -83.045753"],
+    ["Eastern US","America/New_York",""],
+    ["Pacific US","America/Los_Angeles",""],
+    ["Tokyo","Asia/Tokyo",""],
+    ["Moscow","Europe/Moscow",""],
+    ["Berlin","Europe/Berlin",""],
+    ["London","Europe/London",""]
   ];
   localStorage.setItem('storedTimeZones',JSON.stringify(storedTimeZones));
   localStorage.setItem('selectedTimeZone',0);
 } 
 
-let select = document.getElementById("timezone");
-for(var i = 0; i < storedTimeZones.length; i++) {
-  var opt = storedTimeZones[i];
-  var el = document.createElement("option");
-  el.textContent = opt[0];
-  el.value = opt[1];
-  select.appendChild(el);
-}
-
-select.options[selectedTimeZone].selected = 'selected';
 let selectFullList = document.getElementById("timezonefulllist");
 for(var i = 0; i < fulllistTimezones.length; i++) {
   var el = document.createElement("option");
@@ -985,28 +965,38 @@ for(var i = 0; i < fulllistTimezones.length; i++) {
   selectFullList.appendChild(el);
 }
 
-function changeTimeZone(tz){
-  var latlong = tz.split(",");
-  if (latlong.length>1){
-    //stimezone = "Sun";
+function refreshTimezone(){
+  var stz = storedTimeZones[selectedTimeZone];
+  stimezone = stz[1];
+  var sundialloc = stz[2].split(",");
+
+  if (sundialloc.length>1){
     setClockColors("yellow");
-    localtimeoffset = latlong[1]/180*720*-1 - displayed_date.equationoftime();
+    localtimeoffset = sundialloc[1]/180*720*-1 - displayed_date.equationoftime();
+    document.getElementById('zoneInfo').innerHTML=stz[2];
   }else{
-    stimezone = tz;
-    localtimeoffset = getTimezoneOffset(stimezone)
     setClockColors("grey");
+    var h = displayed_date.toLocaleString("en-US", {
+        timeZone: stimezone,
+        timeZoneName: 'shortOffset'
+      }).split('GMT')[1];
+    localtimeoffset = isNaN(h.valueOf()) ? 
+       (h.split(':')[0].valueOf() * -60 - h.split(':')[1].valueOf() ) : h.valueOf() * -60;
+    document.getElementById('zoneInfo').innerHTML=stimezone;
   }
   olddigits = [0,0,0,0,0,0,0,0,0,0,0,0]; //force repositionLetterLabels
   lourclock();
   hourclock();
-  
+  document.getElementById('zoneName').innerHTML=stz[0];
 }	
 
 function setClockColors(c){
   document.getElementById('minutehand').style.backgroundColor = c
   document.getElementById('secondhand').style.backgroundColor = c;
   for (var i=0;i<12;i++)number[i].style.color = c;
-}
+  document.getElementById('zoneName').style.color = c
+  document.getElementById('zoneInfo').style.color = c;
+ }
 
 function getTimezoneOffset(tz){
   var h = displayed_date.toLocaleString("en-US", {
@@ -1017,38 +1007,7 @@ function getTimezoneOffset(tz){
     return (h.split(':')[0].valueOf() * -60 - h.split(':')[1].valueOf() );
    }
   return h.valueOf() * -60;
-}	
-
-
-select.addEventListener("change", (event) => {
-  var s = event.target.value;
-  if (s=="Remove"){
-    storedTimeZones.splice(selectedTimeZone,1);
-    select.remove(selectedTimeZone);
-    localStorage.setItem('storedTimeZones',JSON.stringify(storedTimeZones));
-  }
-  else if (s=="AddTimezone"){
-    document.getElementById("timezonename").value="";
-    selectFullList.value = "";
-    document.getElementById("latlong").value = "";
-    document.getElementById("AddSundial").style.display = "none";
-    document.getElementById("AddTimezone").style.display = "block";
-    AddTimezoneBox.style.display = "block";
-  }
-  else if (s=="AddSundial"){
-    document.getElementById("timezonename").value="";
-    document.getElementById("latlong").value = "";
-    selectFullList.value = "";
-    document.getElementById("AddSundial").style.display = "block";
-    document.getElementById("AddTimezone").style.display = "none";
-    AddTimezoneBox.style.display = "block";    
-  }
-  else{   
-    selectedTimeZone = select.selectedIndex;
-    localStorage.setItem('selectedTimeZone',selectedTimeZone);
-    changeTimeZone(s);
-  }
-});
+}
 
 selectFullList.addEventListener("change", (event) => {
   var s = event.target.value;
@@ -1057,51 +1016,89 @@ selectFullList.addEventListener("change", (event) => {
   document.getElementById("timezonename").value = s;
 });
 
-
 var AddTimezoneBox = document.getElementById("AddTimezoneBox");
 let getlocbtn = document.getElementById("getloc");
 let latlong = document.getElementById("latlong");
+var btnGetTimezone = document.getElementById("btnGetTimezone");
 var btnAddZone = document.getElementById("btnAddZone");
-var closebtn = document.getElementsByClassName("close")[0];
+var btnRemoveZone = document.getElementById("btnRemoveZone");
+var closebtn = document.getElementById("btnCloseZoneBox");
 
 btnAddZone.onclick = function() {
-  var opt = document.createElement("option");
-  opt.text = document.getElementById("timezonename").value;
-  opt.value = selectFullList.value + latlong.value;
-  select.add(opt,selectedTimeZone);
-  select.value = selectFullList.value;
-  var newone = [[opt.text],[opt.value]];
-  storedTimeZones.splice(selectedTimeZone,0,newone);
+  var newZone = [document.getElementById("timezonename").value, selectFullList.value, latlong.value];
+  storedTimeZones.splice(selectedTimeZone,0,newZone);
   localStorage.setItem('storedTimeZones',JSON.stringify(storedTimeZones));
-  changeTimeZone(opt.value);
+  refreshTimezone();
   AddTimezoneBox.style.display = "none";
 }
 
-getlocbtn.addEventListener("click", () => {
-  latlong.value = "getting..."
-  navigator.geolocation.getCurrentPosition((position) => {
-    let lat = position.coords.latitude.toFixed(4);
-    let long = position.coords.longitude.toFixed(4);
-    latlong.value = lat + ", " + long;
-  });
-});
+btnRemoveZone.onclick = function() {
+  storedTimeZones.splice(selectedTimeZone,1);
+  if (selectedTimeZone == storedTimeZones.length) selectedTimeZone = 0; //back to top;
+  localStorage.setItem('selectedTimeZone',selectedTimeZone);
+  localStorage.setItem('storedTimeZones',JSON.stringify(storedTimeZones));
+  refreshTimezone();
+  AddTimezoneBox.style.display = "none";
+}
 
-// When the user clicks on <span> (x), close the modal
 closebtn.onclick = function() {
   AddTimezoneBox.style.display = "none";
 }
 
-// When the user clicks anywhere outside of the modal, close it
+getlocbtn.addEventListener("click", () => {
+  latlong.value = "getting location"
+  navigator.geolocation.getCurrentPosition((position) => {
+    latlong.value = position.coords.latitude.toFixed(3) + ", " + position.coords.longitude.toFixed(3);
+  });
+});
+
+btnGetTimezone.addEventListener("click", () => {
+  var promise1 = new Promise(function(resolve, reject) {
+  var xhr = new XMLHttpRequest();
+  var method = "GET";
+  var loc = latlong.value.split(",");
+
+    var url = "http://api.geonames.org/timezoneJSON?username=26lrClock&lat="+loc[0]+"&lng="+loc[1];
+    xhr.open(method, url, true);
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState === 4 && xhr.status === 200) {
+        resolve(JSON.parse(xhr.responseText));
+      }
+    };
+    xhr.send();
+    });
+
+    promise1.then(function(value) {
+      selectFullList.value = value.timezoneId;
+    });
+
+
+});
+
+
 window.onclick = function(event) {
   if (event.target == AddTimezoneBox) {
     AddTimezoneBox.style.display = "none";
   }
 }
 
+document.getElementById('zoneName').addEventListener('click', (e) => {
+  selectedTimeZone++; 
+  if (selectedTimeZone == storedTimeZones.length) selectedTimeZone = 0; //back to top;
+  localStorage.setItem('selectedTimeZone',selectedTimeZone);
+  refreshTimezone();
+});
+
+document.getElementById('zoneInfo').addEventListener('click', (e) => {
+  document.getElementById("timezonename").value=storedTimeZones[selectedTimeZone][0];
+  document.getElementById("latlong").value = storedTimeZones[selectedTimeZone][2];
+  selectFullList.value = storedTimeZones[selectedTimeZone][1];
+  AddTimezoneBox.style.display = "block";    
+});
+
+
 
 //select.value = Intl.DateTimeFormat().resolvedOptions().timeZone;
-
-changeTimeZone(select.value);
 
 start();
 
