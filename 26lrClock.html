@@ -13,11 +13,9 @@
 body {
 	background: #000000;
   text-align:center;
-  color:#ddf;
   font-family: Tahoma, 'Geneva', Verdana;
-    color:#cce;
+  color:#cce;
 }
-
 .place{
 	font-size:45px;
 	border-radius: 10%;
@@ -27,8 +25,8 @@ body {
 	position: absolute;
 	left: 50%;
 	width:40px;
-	//border-radius: 50%;
-	//background: #999;
+	border-radius: 50%;
+	background: #111;
 	margin-top:140px;
 	margin-left: -18px;
 	font-size: 32px;
@@ -56,13 +54,14 @@ body {
   color: #bbb;
 }
 
-#lourclock{margin: 50 0 30 0;}
-#zoneDiv{margin: auto; width:360px;}
-#zoneName{float:left; margin: -20; }
-#zoneInfo{float:right; margin: -20;}
-#hourclock{ margin: 0 0; height:360px;}
-#datestring{margin: 0 0px 0 0;}
-
+#lourclock{margin: 40 ;}
+#zoneDiv{margin: auto; width:320px;}
+#zoneName{float:left; margin: -30; }
+#zoneInfo{float:right; margin: -30;}
+#hourclock{ margin: 0 0; height:320px;}
+#datestring{}
+.transport{padding: 20px;}
+.transctl{padding: 30px; border: 1px}
 .hand {
   position: absolute;
   left: 50%;
@@ -105,35 +104,35 @@ body {
   width: 100%;
   height: 100%;
   overflow: auto;
-  background-color: rgb(0,0,0); /* Fallback color */
-  background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+  background-color: rgb(0,0,0); 
+  background-color: rgba(0,0,0,0.4); 
 }
 .modal-content {
   background-color: #000;
-  margin: 15% auto; /* 15% from the top and centered */
+  margin: 15% auto; 
   padding: 20px;
   border: 1px solid #888;
   border-radius: 5px;
   width: 300px;
 }
-
-
 </style>
 </head>
-<body>
 
+
+<body>
+  <div id="datedifference"></div>
   <div id="lourClock">
-  	<span class="place">-</span>
-		<span class="place">-</span>
-		<span class="place">-</span>
-		<span class="place">-</span>
-		<span class="place">-</span>
-		<span class="place">:</span>
-		<span class="place">-</span>
-		<span class="place">-</span>
-		<span class="place">-</span>
-		<span alt="licros" class="place">-</span>
-    <span alt="lanos" class="place" id="lanos">-</span>
+  	<span class="place"> Lera </span>
+		<span class="place"> Lentury </span>
+		<span class="place"> Lear </span>
+		<span class="place"> Week </span>
+		<span class="place"> Day A-G </span>
+		<span class="place"> : </span>
+		<span class="place"> Lour </span>
+		<span class="place"> Linute </span>
+		<span class="place"> Lecond </span>
+		<span class="place"> Licrolecond </span>
+    <span class="place" id="lanos"> Lanolecond </span>
   </div>
    
  	<div id="hourClock">
@@ -142,23 +141,30 @@ body {
     <div class="hand" id="secondhand"></div>
     <div class="hand" id="hourhand"></div>
   </div>
-  
+  <div id="clocktime">AM</div>
+  <div class="transport">
+    <span class="transctl" id="fastreverse"> << </span>
+    <span class="transctl" id="play"> || </span>
+    <span class="transctl" id="fastforward"> >> </span>
+  </div>
   <div>
     <span id="datestring"></span> : <span id="timestring"></span>
   </div>
 <br>
-<label for="dateinput">Set to:</label>
-<input type="text" id="dateinput" >
+
+<div id="SetToDiv" style="display:hidden;">
+  <label for="dateinput">Set to:</label>
+  <input type="text" id="dateinput" >
+</div>
 
 <div id="HelpText">
     <p><a href="http://www.howarddev.com">HowardDev</a></p>
 </div>
-<div id="zoneDiv"><span id="zoneName"></span> <span id="zoneInfo"></span></div> 
 
 <div id="AddTimezoneBox" class="modal">
   <div class="modal-content">
-    <p>Local Time:</p>
-    <label for="timezonename">Display Name:</label>
+    <p>Stored Location/Zone:</p>
+    <label for="timezonename"> Name:</label>
     <input type="text" id="timezonename">
     <br>
     <label for="timezonefulllist">Zone:</label>
@@ -178,9 +184,11 @@ body {
 
 <script>
 
+function el(s){return document.getElementById(s)};
+
 var html = "";
 for (var i = 0; i < 26; i++) {
-  html += "<div class='letter'>" + String.fromCharCode(i+65) + "</div>";
+  html += "<div class='letter'>" + String.fromCharCode((i%26)+65) + "</div>";
 }
 for (var i = 0; i < 26; i++) {
   html += "<div class='linuteletter'>" + String.fromCharCode(i+65) + "</div>";
@@ -188,20 +196,19 @@ for (var i = 0; i < 26; i++) {
 for (var i = 1; i < 13; i++) {
   html += "<div class='number'>" + i + "</div>";
 }
-document.getElementById('hourClock').innerHTML += html;
-
+el('hourClock').innerHTML += html;
 
 var number = document.getElementsByClassName('number');
 var linuteletter = document.getElementsByClassName('linuteletter');
 var letter = document.getElementsByClassName('letter');
 
 for (var i = 0; i < 26; i++) {
-  letter[i].style.color = "hsl("+i*13.85+", 100%, 50%)";
-  linuteletter[i].style.color = "hsl("+i*13.85+", 100%, 50%)";
+  letter[i].style.color = "hsl("+i%26*13.85+", 100%, 50%)";
+  linuteletter[i].style.color = "hsl("+(i%26)*13.85+", 100%, 50%)";
 }
 
 for (var i = 0; i < 12; i++) {
-    var r = 160;
+    var r = 150;
     var h = (i+1)/12;
     var x =  0 + (r * Math.sin(h*2*Math.PI));
     var y =  150 - (r * Math.cos(h*2*Math.PI));
@@ -214,7 +221,7 @@ const params = new Proxy(new URLSearchParams(window.location.search), {
 //var precision = params.precision || 5;
 
 var running = false;
-var analogtimer,licrotimer,lanotimer;
+var analogtimer,licrotimer,lanotimer,runfasttimer;
 
 var displayed_date = new Date();
 var olddigits = [0,0,0,0,0,0,0,0,0,0,0,0];
@@ -227,7 +234,7 @@ function lourclock(){
   
 	for (var i=running?9:10;i>=0;i--){
       if (i!=5){
-       // if(running && olddigits[i]==digits[i]) break; //bug
+        if(running && olddigits[i]==digits[i]) break; //bug
         lourclock[i].style.color = "hsl("+((digits[i].charCodeAt(0)-65)*13.85) + ", 100%, 50%)";
       } 
     	lourclock[i].innerHTML=digits[i];
@@ -251,11 +258,11 @@ function lourclock(){
 			linuteletter[i].style.translate = x+"px "+y+"px";
     }
     
-    r = 80;
+    r = 130;
     for (var i=0;i<26;i++){
 	  	if (l>25) l=0;
 			h = l/13 - (localtimeoffset/720);
-			r += 2;
+			r -= 3;
 			var x =  0 + (r * Math.sin(h*2*Math.PI));
 			var y =  0 - (r * Math.cos(h*2*Math.PI));
 			letter[l].style.translate = x+"px "+y+"px";
@@ -286,7 +293,11 @@ function hourclock() {
   document.getElementById('hourhand').style.backgroundColor = "hsl("+ displayed_date.timepart()*360+", 100%, 50%)";
   document.getElementById('minutehand').style.transform = "rotate("+mDeg+"deg)";
   document.getElementById('secondhand').style.transform = "rotate("+sDeg+"deg)";
-
+  var h = (Math.floor(localsecondsintoday / 3600) % 12);
+  var m = (Math.floor(localsecondsintoday / 60) % 60);
+  var s = (Math.floor(localsecondsintoday) % 60);
+  var a = localsecondsintoday < 43200 ? " AM" : " PM";
+  document.getElementById('clocktime').innerHTML = (h<1?"12":h) + (m<10?":0":":") + m + (s<10?":0":":") + s + a;
   document.getElementById('datestring').innerHTML = displayed_date.toLocaleDateString("en-US",{
     timeZone: stimezone,
     weekday: "short",
@@ -302,12 +313,14 @@ function hourclock() {
 
 function start(){
   refreshTimezone();
-	running = true;
+  running = true;
+  runfastspeed = 0;
+  document.getElementById('datedifference').innerHTML = "Current Time"
 	runLourclock();
   runHourclock();
 	licrotimer = setInterval("runLourclock()", 189);
 	lanotimer = setInterval("updatelanos()", 7);
-	secondtimer = setInterval("runHourclock()", 1000);
+	//secondtimer = setInterval("runHourclock()", 1000);
 }
 
 function runLourclock(){
@@ -316,16 +329,93 @@ function runLourclock(){
 }
 
 function runHourclock(){
-	displayed_date = new Date();
+  if (running){
+	  displayed_date = new Date();
+    hourclock();
+  }else{
+    updatedatediff();
+  }
+}
+
+function updatedatediff(){
+  var d = new Date();
+    var diff = d.getTime() - displayed_date.getTime();
+    document.getElementById('datedifference').innerHTML = formatInterval(diff);
+}
+
+function formatInterval(interval){
+  var future = interval < 0;
+  if (future) interval *= -1;	
+  var s = Math.floor(interval/1000);
+  var days = Math.floor(s/86400);
+	s -= (days * 86400);
+  var h = Math.floor(s / 3600);
+	s -= (h * 3600);
+	var m =Math.floor(s / 60);
+	s -= (m * 60);
+
+	var result = future?"+ ":"- ";
+	if(days>0){
+		if(days>1)
+			result += days + " Days ";
+		else
+			result += days + " Day ";
+  }
+  result += h + (m<10?":0":":") + m + (s<10?":0":":") + s;
+	return result;
+}
+
+function addToDate(s){
+  displayed_date = new Date(displayed_date.getTime()+s);
 	hourclock();
+  lourclock();
+  updatedatediff();
+}
+
+var runfastspeed = 0;
+function runFast(s){
+  stop();
+  runfastspeed=s;
+  runfasttimer = setInterval("addToDate("+runfastspeed+")",50);
+  document.getElementById('play').innerHTML = "||";
 }
 
 function stop(){
-	running = false;
+  running = false;
+  runfastspeed = 0;
   clearInterval(lanotimer);
   clearInterval(licrotimer);
-  clearInterval(secondtimer);
+  //clearInterval(secondtimer);
+  clearInterval(runfasttimer);
 }
+
+document.getElementById('fastreverse').addEventListener('click', (e) => {
+  var s = runfastspeed;
+  stop()
+  if (s>=0)s=-3600;
+  else if (s==-3600)s=-86400;
+  else s *= 2;
+	runFast(s);
+});
+
+document.getElementById('play').addEventListener('click', (e) => {
+  if (e.target.textContent === '>'){
+    e.target.textContent = "||";
+    start(); 
+  } else {
+    e.target.textContent = ">";
+    stop();
+  }
+});
+
+document.getElementById('fastforward').addEventListener('click', (e) => {
+  var s = runfastspeed;
+  stop()
+  if (s<=0)s=3600;
+  else if (s==3600)s=86400;
+  else s *= 2;
+	runFast(s);
+});
 
 document.getElementById('dateinput').addEventListener("change", (event) => {
 	stop();
@@ -335,12 +425,12 @@ document.getElementById('dateinput').addEventListener("change", (event) => {
   refreshTimezone();
 });
 
-document.getElementById('lourClock').addEventListener('click', (e) => {
-	running ? stop() : start();
-});
-
 document.getElementById('datestring').addEventListener('click', (e) => {
-
+  var mydiv = document.getElementById('SetToDiv');
+  if (mydiv.style.display === 'block' || mydiv.style.display === '')
+    mydiv.style.display = 'none';
+  else
+    mydiv.style.display = 'block'
 });
 
  var fulllistTimezones = [
@@ -938,20 +1028,20 @@ document.getElementById('datestring').addEventListener('click', (e) => {
     "Zulu",
   ];
 
-  localStorage.clear();
+//  localStorage.clear();
 var storedTimeZones = JSON.parse(localStorage.getItem("storedTimeZones") || "[]");
 var selectedTimeZone = localStorage.getItem("selectedTimeZone") || 0;
 
 if (storedTimeZones.length==0){
   storedTimeZones = [ 
-    ["Sundial Boston","America/New_York","42.361145, -71.057083"],
-    ["Sundial Detroit","America/New_York","42.331429, -83.045753"],
+    ["Boston","America/New_York","42, -71"],
+    ["Detroit","America/New_York","42, -83"],
     ["Eastern US","America/New_York",""],
     ["Pacific US","America/Los_Angeles",""],
-    ["Tokyo","Asia/Tokyo",""],
-    ["Moscow","Europe/Moscow",""],
-    ["Berlin","Europe/Berlin",""],
-    ["London","Europe/London",""]
+    ["Tokyo","Asia/Tokyo","35.6, 139.0"],
+    ["Moscow","Europe/Moscow","55.3, 37.3"],
+    ["Germany","Europe/Berlin",""],
+    ["Stonehenge","Europe/London","51.18, -1.83"]
   ];
   localStorage.setItem('storedTimeZones',JSON.stringify(storedTimeZones));
   localStorage.setItem('selectedTimeZone',0);
@@ -972,7 +1062,7 @@ function refreshTimezone(){
 
   if (sundialloc.length>1){
     setClockColors("yellow");
-    localtimeoffset = sundialloc[1]/180*720*-1 - displayed_date.equationoftime();
+    localtimeoffset = (sundialloc[1]/180*720*-1 - displayed_date.equationoftime());
     document.getElementById('zoneInfo').innerHTML=stz[2];
   }else{
     setClockColors("grey");
@@ -993,6 +1083,7 @@ function refreshTimezone(){
 function setClockColors(c){
   document.getElementById('minutehand').style.backgroundColor = c
   document.getElementById('secondhand').style.backgroundColor = c;
+  document.getElementById('clocktime').style.color = c;
   for (var i=0;i<12;i++)number[i].style.color = c;
   document.getElementById('zoneName').style.color = c
   document.getElementById('zoneInfo').style.color = c;
@@ -1096,10 +1187,7 @@ document.getElementById('zoneInfo').addEventListener('click', (e) => {
   AddTimezoneBox.style.display = "block";    
 });
 
-
-
-//select.value = Intl.DateTimeFormat().resolvedOptions().timeZone;
-
+secondtimer = setInterval("runHourclock()", 1000);
 start();
 
 </script>

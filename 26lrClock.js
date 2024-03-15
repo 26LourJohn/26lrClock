@@ -1,4 +1,5 @@
 // 26lr Clock Date Functions
+// Now using 7 Day A-G Weeks TZYOC
 // by John Howard JZYTH 
 
 function DateFrom26Lr(s) {
@@ -13,11 +14,12 @@ function DateFrom26Lr(s) {
 	lrdate = defaultmask.substring(0,5-lrdate.length) + lrdate;
 
 	days = (lrdate.charCodeAt(4)-65);
-	if (days > 13) alert("Day letter should not be higher than N:"); 
+	if (days > 6) alert("Day letter should not be higher than G:"); 
+	//if (days > 13) alert("Day letter should not be higher than N:"); 
 
 	//compute number of leeks
 	for (i=0;i<4;i++) leeks += (lrdate.charCodeAt(i)-65) * Math.pow(26,3-i);
-	days += leeks*14;
+	days += leeks * 7; //14
 
 	//compute time
 	var ms = 7.0; // add an extra licrosecond as hack fix for mysterious bug
@@ -38,8 +40,8 @@ Date.prototype.to26lr = function () {
   	var timepart = this.valueOf()/86400000 + .5; //86400000 is millesconds in a day, 2440587.5 juliandate of Jan 1 1970   		 
   	var datepart = Math.floor(timepart) + 2440587;
   	timepart -= Math.floor(timepart);		
-  	var day = datepart%14;
-	  var leeks = (datepart - day)/14;
+  	var day = datepart%7; //14
+	  var leeks = (datepart - day)/7;
     var b26datepart = leeks.toString(26)+day.toString(26);
     var b26timepart = timepart.toString(26);
     var sOut = "";
