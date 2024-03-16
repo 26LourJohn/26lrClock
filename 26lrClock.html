@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-title" content="26lr Clock">
 <link rel="manifest" href="26lrClock.webmanifest.json">
 <script type="text/javascript" src="26lrClock.js"></script>
-<title>26Lr Clock</title>
+<title>26lr Clock</title>
 <style>
 body {
 	background: #000000;
@@ -17,7 +17,7 @@ body {
   color:#cce;
 }
 .place{
-	font-size:50px;
+	font-size:45px;
 	border-radius: 10%;
   font-family: Menlo, monospace;
 }
@@ -54,7 +54,7 @@ body {
   color: #bbb;
 }
 
-#lourclock{margin: 20 0 30 0; white-space: nowrap; }
+#lourclock{margin: 20 0 60 0; white-space: nowrap; }
 #zoneDiv{margin: auto; width:320px;}
 #zoneName{float:left; margin: -30; }
 #zoneInfo{float:right; margin: -30;}
@@ -131,8 +131,8 @@ body {
 		<span class="place"> Lour </span>
 		<span class="place"> Linute </span>
 		<span class="place"> Lecond </span>
-		<span class="place"> Licrolecond </span>
-    <span class="place" id="lanos"> Lanolecond </span>
+		<span class="place"> Licro </span>
+    <span class="place" id="lanos"> Lano </span>
   </div>
 
  	<div id="hourClock">
@@ -141,7 +141,7 @@ body {
     <div class="hand" id="secondhand"></div>
     <div class="hand" id="hourhand"></div>
   </div>
-  <div id="clocktime">AM</div>
+  <div id="clocktime"></div>
   <div class="transport">
     <span class="transctl" id="fastreverse"> << </span>
     <span class="transctl" id="play"> || </span>
@@ -330,7 +330,8 @@ function runLourclock(){
 
 function runHourclock(){
   if (running){
-	  displayed_date = new Date();
+    displayed_date = new Date();
+    refreshTimezone();
     hourclock();
   }else{
     updatedatediff();
@@ -367,6 +368,7 @@ function formatInterval(interval){
 
 function addToDate(s){
   displayed_date = new Date(displayed_date.getTime()+s);
+  refreshTimezone();
 	hourclock();
   lourclock();
   updatedatediff();
