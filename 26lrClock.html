@@ -54,13 +54,13 @@ body {
   color: #bbb;
 }
 
-#lourclock{margin: 20 0 60 0; white-space: nowrap; }
+#lourclock{margin: 30 0 70 0; white-space: nowrap; }
 #zoneDiv{margin: auto; width:320px;}
 #zoneName{float:left; margin: -30; }
 #zoneInfo{float:right; margin: -30;}
 #hourclock{ margin: 0 0; height:320px;}
 #datestring{}
-.transport{padding: 20px;}
+.transport{padding: 30px;}
 .transctl{padding: 30px; border: 1px}
 .hand {
   position: absolute;
@@ -152,13 +152,15 @@ body {
   </div>
 <br>
 
-<div id="SetToDiv" style="display:hidden;">
+<div id="SetToDiv" style="display:none;">
   <label for="dateinput">Set to:</label>
   <input type="text" id="dateinput" >
 </div>
 
 <div id="HelpText">
-    <p><a href="http://www.howarddev.com">HowardDev</a></p>
+  <p> </p>
+  <p> </p>
+  <p><a href="http://www.howarddev.com">HowardDev</a></p>
 </div>
 
 <div id="AddTimezoneBox" class="modal">
@@ -380,6 +382,9 @@ function runFast(s){
   runfastspeed=s;
   runfasttimer = setInterval("addToDate("+runfastspeed+")",50);
   document.getElementById('play').innerHTML = "||";
+  if (Math.abs(s)>3600) document.getElementById('secondhand').style.visibility = 'hidden';
+  if (Math.abs(s)>345600) document.getElementById('minutehand').style.visibility = 'hidden';
+ 
 }
 
 function stop(){
@@ -408,6 +413,8 @@ document.getElementById('play').addEventListener('click', (e) => {
     e.target.textContent = ">";
     stop();
   }
+  document.getElementById('secondhand').style.visibility = 'visible';
+  document.getElementById('minutehand').style.visibility = 'visible';
 });
 
 document.getElementById('fastforward').addEventListener('click', (e) => {
