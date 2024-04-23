@@ -26,21 +26,10 @@ body {
 	left: 50%;
 	width:40px;
 	border-radius: 50%;
-	background: #111;
+	background: #000;
 	margin-top:140px;
 	margin-left: -18px;
 	font-size: 32px;
-  font-family: Menlo-Bold, monospace;
-}
-.linuteletter{
-  position: absolute;
-  left: 50%;
-	//width:40px;
-	//border-radius: 50%;
-	//background: #999;
-	margin-top:160px;
-	//margin-left: -2px;
-	font-size: 10px;
   font-family: Menlo-Bold, monospace;
 }
 .number{
@@ -192,21 +181,16 @@ var html = "";
 for (var i = 0; i < 26; i++) {
   html += "<div class='letter'>" + String.fromCharCode((i%26)+65) + "</div>";
 }
-for (var i = 0; i < 26; i++) {
-  html += "<div class='linuteletter'>" + String.fromCharCode(i+65) + "</div>";
-}
 for (var i = 1; i < 13; i++) {
   html += "<div class='number'>" + i + "</div>";
 }
 el('hourClock').innerHTML += html;
 
 var number = document.getElementsByClassName('number');
-var linuteletter = document.getElementsByClassName('linuteletter');
 var letter = document.getElementsByClassName('letter');
 
 for (var i = 0; i < 26; i++) {
   letter[i].style.color = "hsl("+i%26*13.85+", 100%, 50%)";
-  linuteletter[i].style.color = "hsl("+(i%26)*13.85+", 100%, 50%)";
 }
 
 for (var i = 0; i < 12; i++) {
@@ -241,26 +225,11 @@ function lourclock(){
       } 
     	lourclock[i].innerHTML=digits[i];
   }
-
-  var linute = digits[7].charCodeAt(0)-65;
-  for (var i=0;i<26;i++){
-			linuteletter[i].style.visibility = linute==i?"visible":"hidden";
-  }
   
   if(olddigits[6]!=digits[6]){ // i<=6){
   	var l = digits[6].charCodeAt(0)-65;
   	var h = l/13 - (localtimeoffset/720);
-    var r = 140;
-   
-    var hl = h;
-    for (var i=0;i<26;i++){
-      hl += (1/338);
-			var x =  0 + (r * Math.sin(hl*2*Math.PI));
-			var y =  0 - (r * Math.cos(hl*2*Math.PI));
-			linuteletter[i].style.translate = x+"px "+y+"px";
-    }
-    
-    r = 130;
+    var r = 130;
     for (var i=0;i<26;i++){
 	  	if (l>25) l=0;
 			h = l/13 - (localtimeoffset/720);
