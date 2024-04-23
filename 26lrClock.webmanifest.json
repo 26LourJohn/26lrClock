@@ -1,0 +1,26 @@
+{
+
+  "name": "26Lr Clock",
+  "short_name": "26lr",
+  "start_url": "26lrClock.html",
+  "display": "standalone",
+  "background_color": "purple",
+  "description": "Shows DATE:TIME in 26 Lour Time.",
+  "icons": [
+    {
+      "src": "26LRLOGO72.png",
+      "sizes": "72x72",
+      "type": "image/png"
+    }
+    {
+      "src": "26LRLOGO192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+    {
+      "src": "26LRLOGO512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
