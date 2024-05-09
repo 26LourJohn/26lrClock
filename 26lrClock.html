@@ -44,10 +44,10 @@ body {
   color: #bbb;
 }
 
-#lourclock{margin: 30 0 30 0; white-space: nowrap; }
+#lourclock{margin: 30 0 60 0; white-space: nowrap; }
 #zoneDiv{margin: auto; width:320px;}
-#zoneName{float:left;  }
-#zoneInfo{float:right; }
+#zoneName{float:left; margin: -15 }
+#zoneInfo{float:right; margin: -15  }
 #hourclock{ margin: 0 0; height:320px;}
 #datestring{}
 .transport{padding: 30px;}
@@ -300,7 +300,7 @@ function runHourclock(){
   if (running){
     displayed_date = new Date();
     refreshTimezone();
-    hourclock();
+    hourclock(); 
   }else{
     updatedatediff();
   }
@@ -337,8 +337,8 @@ function formatInterval(interval){
 function addToDate(s){
   displayed_date = new Date(displayed_date.getTime()+s);
   refreshTimezone();
-	hourclock();
-  lourclock();
+  hourclock(); 
+  lourclock(); 
   updatedatediff();
 }
 
@@ -398,6 +398,8 @@ document.getElementById('dateinput').addEventListener("change", (event) => {
 	if (isNaN(d)) d = DateFrom26Lr(event.target.value); 
   displayed_date = d;
   refreshTimezone();
+  hourclock();
+  lourclock();
 });
 
 document.getElementById('datestring').addEventListener('click', (e) => {
@@ -1050,8 +1052,8 @@ function refreshTimezone(){
     document.getElementById('zoneInfo').innerHTML=stimezone;
   }
   olddigits = [0,0,0,0,0,0,0,0,0,0,0,0]; //force repositionLetterLabels
-  lourclock();
-  hourclock();
+  //lourclock();
+  //hourclock();
   document.getElementById('zoneName').innerHTML=stz[0];
 }	
 
@@ -1153,6 +1155,8 @@ document.getElementById('zoneName').addEventListener('click', (e) => {
   if (selectedTimeZone == storedTimeZones.length) selectedTimeZone = 0; //back to top;
   localStorage.setItem('selectedTimeZone',selectedTimeZone);
   refreshTimezone();
+  hourclock();
+  lourclock();
 });
 
 document.getElementById('zoneInfo').addEventListener('click', (e) => {
