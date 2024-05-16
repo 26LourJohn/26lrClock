@@ -7,7 +7,7 @@ function DateFrom26Lr(s) {
 	s = s.split(":");
 	lrdate=s[0];
 	lrtime=s[1];
-	var leeks = 0;
+	var weeks = 0;
 	var days = 0;
 	now = new Date;
 	defaultmask = now.to26lr();
@@ -17,9 +17,10 @@ function DateFrom26Lr(s) {
 	if (days > 6) alert("Day letter should not be higher than G:"); 
 	//if (days > 13) alert("Day letter should not be higher than N:"); 
 
-	//compute number of leeks
-	for (i=0;i<4;i++) leeks += (lrdate.charCodeAt(i)-65) * Math.pow(26,3-i);
-	days += leeks * 7; //14
+	//compute number of weeks
+	for (i=0;i<4;i++) weeks += (lrdate.charCodeAt(i)-65) * Math.pow(26,3-i);
+
+	days += weeks * 7; //14
 
 	//compute time
 	var ms = 7.0; // add an extra licrosecond as hack fix for mysterious bug
@@ -28,6 +29,28 @@ function DateFrom26Lr(s) {
 	var d = new Date();
 	d.setTime((days-2440587.5) * 86400000 + ms); 
 	return d;
+}
+
+function longitudeto26lr(l){
+	//input longitude -180 (East) to 180 (West)
+	//return 26 Lr Time of Mean Noon there
+	var t = l<=0? l / -360 : (360-l)/360 ;
+	var b26t = t.toString(26);
+    var sOut = "";
+    for (i=2;i<7;i++){
+    	var c = b26t.charCodeAt(i);
+		if (isNaN(c)) {sOut += "A"}
+		else {
+			sOut += String.fromCharCode(c < 97 ? c + 17 : c - 22);
+		}
+	}
+	return sOut;
+}
+
+function longitudefrom26lr(s){
+	var p = 0.0;
+	for (i=0;i<s.length;i++) p += (s.charCodeAt(i)-65) / Math.pow(26,i+1);
+	return  p <= .5 ? p * -360 : 360 - p * 360;
 }
 
 Date.prototype.timepart = function () {
