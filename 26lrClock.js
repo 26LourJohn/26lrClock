@@ -53,6 +53,17 @@ function longitudefrom26lr(s){
 	return  p <= .5 ? p * -360 : 360 - p * 360;
 }
 
+function longitudetocolor(l){
+	var t = l<=0? l / -360 : (360-l)/360 ;
+	return "hsl("+(t*360)+", 100%, 50%)";
+}
+
+function colorfrom26lr(s){
+	var p = 0.0;
+	for (i=0;i<s.length;i++) p += (s.charCodeAt(i)-65) / Math.pow(26,i+1);
+	return  p * 360;
+}
+
 Date.prototype.timepart = function () {
   	var timepart = this.valueOf()/86400000 + .5;  
   	timepart -= Math.floor(timepart);

@@ -112,17 +112,17 @@ body {
 <body>
   <div id="datedifference"></div>
   <div id="lourClock">
-  	<span class="place"> Lera </span>
-		<span class="place"> Lentury </span>
-		<span class="place"> Lear </span>
-		<span class="place"> Week </span>
-		<span class="place"> Day A-G </span>
-		<span class="place"> : </span>
-		<span class="place"> Lour </span>
-		<span class="place"> Linute </span>
-		<span class="place"> Lecond </span>
-		<span class="place"> Licro </span>
-    <span class="place" id="lanos"> Lano </span>
+  	<span class="place">-</span>
+		<span class="place">-</span>
+		<span class="place">-</span>
+		<span class="place">-</span>
+		<span class="place">-</span>
+		<span class="place">:</span>
+		<span class="place">-</span>
+		<span class="place">-</span>
+		<span class="place">-</span>
+		<span class="place">-</span>
+    <span class="place" id="lanos">-</span>
   </div>
   
   <div id="zoneDiv"><span id="zoneName"></span> <span id="zoneInfo"></span></div>
@@ -1038,9 +1038,9 @@ function refreshTimezone(){
   var sundialloc = stz[2].split(",");
 
   if (sundialloc.length>1){
-    setClockColors("yellow");
+    setClockColors(longitudetocolor(sundialloc[1]));
     localtimeoffset = (sundialloc[1]/180*720*-1 - displayed_date.equationoftime());
-    document.getElementById('zoneInfo').innerHTML=stz[2];
+    document.getElementById('zoneInfo').innerHTML=longitudeto26lr(sundialloc[1]);
   }else{
     setClockColors("grey");
     var h = displayed_date.toLocaleString("en-US", {
