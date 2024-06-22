@@ -16,6 +16,7 @@ body {
   font-family: Tahoma, 'Geneva', Verdana;
   font-size:12px;
   color:#cce;
+  overscroll-behavior: none;
 }
 .place{
 	font-size:45px;
@@ -115,11 +116,11 @@ body {
 <body>
   <div id="datedifference"></div>
   <div id="lourClock">
-  	<span class="place" onmousedown="adjust(0)">-</span>
-		<span class="place" onmousedown="adjust(1)">-</span>
+  	<span class="place" onmousedown="adjust(1)">-</span>
 		<span class="place" onmousedown="adjust(2)">-</span>
 		<span class="place" onmousedown="adjust(3)">-</span>
 		<span class="place" onmousedown="adjust(4)">-</span>
+		<span class="place" onmousedown="adjust(5)">-</span>
 		<span class="place">:</span>
 		<span class="place" onmousedown="adjust(6)">-</span>
 		<span class="place" onmousedown="adjust(7)">-</span>
@@ -428,7 +429,6 @@ document.getElementById('datestring').addEventListener('click', (e) => {
     mydiv.style.display = 'block'
 });
 
-
 var numbers = document.getElementsByClassName('number');
 for (var i = 0; i < 12; i++) {
   numbers[i].addEventListener('click',(e)  => {
@@ -472,15 +472,15 @@ for (var i = 0; i < 11; i++) {
 el("lourClock").addEventListener('mousemove',(e)  => {
     if(placetouched){
       var s = displayed_date.to26lr();
-      var d = s.charCodeAt(placetouched)-65;
+      var p = placetouched - (placetouched<6?1:0);
+      var d = s.charCodeAt(p)-65;
       d += e.y - placetouchedstart;
       if (d<0) d = 0;
-      else if (placetouched == 4 && d > 6) d = 6;
+      else if (p == 4 && d > 6) d = 6;
       else if (d>25) d = 25;
       placetouchedstart = e.y;
-      document.getElementById('mapcolors').innerHTML = s.substr(0,placetouched)+String.fromCharCode(d+65)+s.substr(placetouched+1,11-placetouched)
-      setToDate(s.substr(0,placetouched)+String.fromCharCode(d+65)+s.substr(placetouched+1,11-placetouched))
-
+      document.getElementById('mapcolors').innerHTML = s.substr(0,p)+String.fromCharCode(d+65)+s.substr(p+1,11-p);
+      setToDate(s.substr(0,p)+String.fromCharCode(d+65)+s.substr(p+1,11-p));
     }
   });
 
