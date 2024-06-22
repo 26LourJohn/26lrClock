@@ -50,6 +50,9 @@ body {
 #zoneInfo{float:right; margin: -15  }
 #hourclock{ margin: 0 0; height:320px;}
 #datestring{}
+#mapcolors{margin: auto; width:360px;height: 60px;}
+#meridian{margin: 0; width:1px; height: 60px;}
+
 .transport{padding: 30px;}
 .transctl{padding: 30px; border: 1px}
 .hand {
@@ -63,10 +66,10 @@ body {
 #hourhand {
 	//z-index: 10;
   width: 6px;
-  height: 50px;
+  height: 45px;
   background: #999;
   margin-left: -3px;
-  margin-top: 100px;
+  margin-top: 105px;
 }
 
 #minutehand {
@@ -112,17 +115,17 @@ body {
 <body>
   <div id="datedifference"></div>
   <div id="lourClock">
-  	<span class="place">-</span>
-		<span class="place">-</span>
-		<span class="place">-</span>
-		<span class="place">-</span>
-		<span class="place">-</span>
+  	<span class="place" onmousedown="adjust(0)">-</span>
+		<span class="place" onmousedown="adjust(1)">-</span>
+		<span class="place" onmousedown="adjust(2)">-</span>
+		<span class="place" onmousedown="adjust(3)">-</span>
+		<span class="place" onmousedown="adjust(4)">-</span>
 		<span class="place">:</span>
-		<span class="place">-</span>
-		<span class="place">-</span>
-		<span class="place">-</span>
-		<span class="place">-</span>
-    <span class="place" id="lanos">-</span>
+		<span class="place" onmousedown="adjust(6)">-</span>
+		<span class="place" onmousedown="adjust(7)">-</span>
+		<span class="place" onmousedown="adjust(8)">-</span>
+		<span class="place" onmousedown="adjust(9)">-</span>
+    <span class="place" onmousedown="adjust(10)" id="lanos">-</span>
   </div>
   
   <div id="zoneDiv"><span id="zoneName"></span> <span id="zoneInfo"></span></div>
@@ -140,6 +143,7 @@ body {
   <div>
     <span id="datestring"></span> : <span id="timestring"></span>
   </div>
+  <div id="mapcolors"></div>
 <br>
 
 <div id="SetToDiv" style="display:none;">
@@ -185,6 +189,13 @@ el('hourClock').innerHTML += html;
 
 var number = document.getElementsByClassName('number');
 var letter = document.getElementsByClassName('letter');
+html = "";
+for (var i = 1; i < 360; i++) {
+  html += "<span class='meridian' style= 'backgroundColor: hsl("+i+", 100%, 50%)'></span>";
+}
+html="something";
+
+el('mapcolors').innerHTML = html;
 
 for (var i = 0; i < 26; i++) {
   letter[i].style.color = "hsl("+i%26*13.85+", 100%, 50%)";
@@ -210,6 +221,8 @@ var displayed_date = new Date();
 var olddigits = [0,0,0,0,0,0,0,0,0,0,0,0];
 var localtimeOffset; //in minutes from GMT
 var stimezone;
+var placetouched;
+var placetouchedstart;
 
 function lourclock(){
 	var digits = displayed_date.to26lr().split("");
@@ -226,11 +239,12 @@ function lourclock(){
   if(olddigits[6]!=digits[6]){ // i<=6){
   	var l = digits[6].charCodeAt(0)-65;
   	var h = l/13 - (localtimeoffset/720);
-    var r = 130;
+    var r = 80;
     for (var i=0;i<26;i++){
 	  	if (l>25) l=0;
-			h = l/13 - (localtimeoffset/720);
-			r -= 2.5;
+      h = l/13 - (localtimeoffset/720);
+      r += i<13 ? 4*i/13 : 3*(26-i)/13;
+			//if (i==13)r = 130;
 			var x =  0 + (r * Math.sin(h*2*Math.PI));
 			var y =  0 - (r * Math.cos(h*2*Math.PI));
 			letter[l].style.translate = x+"px "+y+"px";
@@ -258,7 +272,7 @@ function hourclock() {
 	var mDeg = 360 * (localsecondsintoday % 3600)/3600;
 	var sDeg = 360 * (localsecondsintoday % 60)/60;
   document.getElementById('hourhand').style.transform = "rotate("+hDeg+"deg)";
-  document.getElementById('hourhand').style.backgroundColor = "hsl("+ displayed_date.timepart()*360+", 100%, 50%)";
+  //document.getElementById('hourhand').style.backgroundColor = "hsl("+ displayed_date.timepart()*360+", 100%, 50%)";
   document.getElementById('minutehand').style.transform = "rotate("+mDeg+"deg)";
   document.getElementById('secondhand').style.transform = "rotate("+sDeg+"deg)";
   var h = (Math.floor(localsecondsintoday / 3600) % 12);
@@ -393,14 +407,18 @@ document.getElementById('fastforward').addEventListener('click', (e) => {
 });
 
 document.getElementById('dateinput').addEventListener("change", (event) => {
-	stop();
-	var d = new Date(event.target.value);
-	if (isNaN(d)) d = DateFrom26Lr(event.target.value); 
+	setToDate(event.target.value);
+});
+
+function setToDate(s){
+  stop();
+	var d = new Date(s);
+	if (isNaN(d)) d = DateFrom26Lr(s); 
   displayed_date = d;
   refreshTimezone();
   hourclock();
   lourclock();
-});
+}
 
 document.getElementById('datestring').addEventListener('click', (e) => {
   var mydiv = document.getElementById('SetToDiv');
@@ -409,6 +427,84 @@ document.getElementById('datestring').addEventListener('click', (e) => {
   else
     mydiv.style.display = 'block'
 });
+
+
+var numbers = document.getElementsByClassName('number');
+for (var i = 0; i < 12; i++) {
+  numbers[i].addEventListener('click',(e)  => {
+    setToNumber(event.target.textContent );
+  });
+}
+function setToNumber(l){
+  stop();
+  var localsecondsintoday = (Math.floor(86400 * displayed_date.timepart()) + 43200 - (localtimeoffset * 60)) % 86400;
+  var pmseconds = localsecondsintoday >= 43200 ? 43200 : 0;
+  var newlocalseconds = (l%12)*3600.0 + pmseconds ;
+  alert('debug ' + localsecondsintoday + ' ' + newlocalseconds + ' '+displayed_date.getTime())
+  var newtime = new Date();
+  newtime.setTime(displayed_date.getTime() - (localsecondsintoday - newlocalseconds) * 1000);
+  setToDate(newtime);
+}
+
+var letters = document.getElementsByClassName('letter');
+for (var i = 0; i < 26; i++) {
+  letters[i].addEventListener('click',(e)  => {
+    setToDate(event.target.textContent );
+  });
+}
+
+/*
+var places = document.getElementsByClassName('place');
+for (var i = 0; i < 11; i++) {
+  places[i].addEventListener('mousemove',(e)  => {
+    if(placetouched){
+      //alert(placetouched+ " y=" + e.y )
+      document.getElementById('mapcolors').innerHTML =  placetouched+ " y=" + e.y ;
+    }
+  });
+  places[i].addEventListener('mouseup',(e)  => {
+    placetouched = 0;
+    document.getElementById('mapcolors').innerHTML =  placetouched+ " y=" + e.y ;
+  });
+}
+*/
+
+el("lourClock").addEventListener('mousemove',(e)  => {
+    if(placetouched){
+      var s = displayed_date.to26lr();
+      var d = s.charCodeAt(placetouched)-65;
+      d += e.y - placetouchedstart;
+      if (d<0) d = 0;
+      else if (placetouched == 4 && d > 6) d = 6;
+      else if (d>25) d = 25;
+      placetouchedstart = e.y;
+      document.getElementById('mapcolors').innerHTML = s.substr(0,placetouched)+String.fromCharCode(d+65)+s.substr(placetouched+1,11-placetouched)
+      setToDate(s.substr(0,placetouched)+String.fromCharCode(d+65)+s.substr(placetouched+1,11-placetouched))
+
+    }
+  });
+
+el("lourClock").addEventListener('mouseup',(e)  => {
+  placetouched = 0;
+  document.getElementById('mapcolors').innerHTML =  "" ;
+});
+
+el("lourClock").addEventListener('mouseout',(e)  => {
+  placetouched = 0;
+  document.getElementById('mapcolors').innerHTML =  "" ;
+});
+
+function adjust(place) {
+  stop();
+  placetouchedstart = event.y;
+  placetouched = place;
+}
+
+
+
+
+
+
 
  var fulllistTimezones = [
     "Africa/Abidjan",
@@ -1042,7 +1138,6 @@ function refreshTimezone(){
     localtimeoffset = (sundialloc[1]/180*720*-1 - displayed_date.equationoftime());
     document.getElementById('zoneInfo').innerHTML=longitudeto26lr(sundialloc[1]);
   }else{
-    setClockColors("grey");
     var h = displayed_date.toLocaleString("en-US", {
         timeZone: stimezone,
         timeZoneName: 'shortOffset'
@@ -1050,6 +1145,7 @@ function refreshTimezone(){
     localtimeoffset = isNaN(h.valueOf()) ? 
        (h.split(':')[0].valueOf() * -60 - h.split(':')[1].valueOf() ) : h.valueOf() * -60;
     document.getElementById('zoneInfo').innerHTML=stimezone;
+    setClockColors(longitudetocolor(localtimeoffset / -720 * 180));
   }
   olddigits = [0,0,0,0,0,0,0,0,0,0,0,0]; //force repositionLetterLabels
   //lourclock();
@@ -1058,6 +1154,7 @@ function refreshTimezone(){
 }	
 
 function setClockColors(c){
+  document.getElementById('hourhand').style.backgroundColor = c
   document.getElementById('minutehand').style.backgroundColor = c
   document.getElementById('secondhand').style.backgroundColor = c;
   document.getElementById('clocktime').style.color = c;
