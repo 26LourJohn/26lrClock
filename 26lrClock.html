@@ -53,9 +53,6 @@ body {
 #zoneName{float:left; margin: -15 }
 #zoneInfo{float:right; margin: -15  }
 #hourclock{ margin: 0 0; height:320px;}
-#datestring{}
-#mapcolors{margin: auto; width:360px;height: 60px;}
-#meridian{margin: 0; width:1px; height: 60px;}
 
 .transport{padding: 30px;}
 .transctl{padding: 30px; border: 1px}
@@ -119,17 +116,17 @@ body {
 <body>
   <div id="datedifference"></div>
   <div id="lourClock">
-  	<span class="place" onmousedown="adjust(1)">-</span>
-		<span class="place" onmousedown="adjust(2)">-</span>
-		<span class="place" onmousedown="adjust(3)">-</span>
-		<span class="place" onmousedown="adjust(4)">-</span>
-		<span class="place" onmousedown="adjust(5)">-</span>
+  	<span class="place" onmousedown="adjust(1)" ontouchstart="adjust(-1)"> -</span>
+		<span class="place" onmousedown="adjust(2)" ontouchstart="adjust(-2)">-</span>
+		<span class="place" onmousedown="adjust(3)" ontouchstart="adjust(-3)">-</span>
+		<span class="place" onmousedown="adjust(4)" ontouchstart="adjust(-4)">-</span>
+		<span class="place" onmousedown="adjust(5)" ontouchstart="adjust(-5)">-</span>
 		<span class="place">:</span>
-		<span class="place" onmousedown="adjust(6)">-</span>
-		<span class="place" onmousedown="adjust(7)">-</span>
-		<span class="place" onmousedown="adjust(8)">-</span>
-		<span class="place" onmousedown="adjust(9)">-</span>
-    <span class="place" onmousedown="adjust(10)" id="lanos">-</span>
+		<span class="place" onmousedown="adjust(6)" ontouchstart="adjust(-6)">-</span>
+		<span class="place" onmousedown="adjust(7)" ontouchstart="adjust(-7)">-</span>
+		<span class="place" onmousedown="adjust(8)" ontouchstart="adjust(-8)">-</span>
+		<span class="place" onmousedown="adjust(9)" ontouchstart="adjust(-9)">-</span>
+    <span class="place" onmousedown="adjust(10)" ontouchstart="adjust(-10)" id="lanos">-</span>
   </div>
   
   <div id="zoneDiv"><span id="zoneName"></span> <span id="zoneInfo"></span></div>
@@ -147,15 +144,10 @@ body {
   <div>
     <span id="datestring"></span> : <span id="timestring"></span>
   </div>
-  <div id="mapcolors"></div>
-<br>
-
 <div id="SetToDiv" style="display:none;">
   <label for="dateinput">Set to:</label>
   <input type="text" id="dateinput" >
 </div>
-
-
 
 <div id="AddTimezoneBox" class="modal">
   <div class="modal-content">
@@ -193,13 +185,25 @@ el('hourClock').innerHTML += html;
 
 var number = document.getElementsByClassName('number');
 var letter = document.getElementsByClassName('letter');
+/*
 html = "";
-for (var i = 1; i < 360; i++) {
-  html += "<span class='meridian' style= 'backgroundColor: hsl("+i+", 100%, 50%)'></span>";
+for (var i = 0; i < 360; i++) {
+  html += "<span class='meridian'>"+i+"</span>";
 }
-html="something";
-
 el('mapcolors').innerHTML = html;
+var merid = document.getElementsByClassName('meridian');
+for (var i = 0; i < 360; i++) {
+  merid[i].style.backgroundColor = "hsl("+i+", 100%, 50%)";
+}
+the hsl gets turned into rgb adding or subtracting 4.25 each degree
+Red 0   255,0,0
+Orange  60  255,255,0
+120 0,255,0
+180 0,255,255
+240 0,0,255
+300 255,0,255
+Red 255,0,4
+*/
 
 for (var i = 0; i < 26; i++) {
   letter[i].style.color = "hsl("+i%26*13.85+", 100%, 50%)";
@@ -295,17 +299,20 @@ function hourclock() {
     timeZone: stimezone,
     timeZoneName: 'short'
   });
+  document.getElementById('datedifference').innerHTML = running ? "Current Time" : dateDifference(displayed_date);
 }
 
 function start(){
   refreshTimezone();
   running = true;
+  document.getElementById('play').innerHTML = "||";
   runfastspeed = 0;
-  document.getElementById('datedifference').innerHTML = "Current Time"
+  clearInterval(runfasttimer);
 	runLourclock();
   runHourclock();
 	licrotimer = setInterval("runLourclock()", 189);
-	lanotimer = setInterval("updatelanos()", 7);
+  lanotimer = setInterval("updatelanos()", 7);
+  
 	//secondtimer = setInterval("runHourclock()", 1000);
 }
 
@@ -315,32 +322,23 @@ function runLourclock(){
 }
 
 function runHourclock(){
-  if (running){
-    displayed_date = new Date();
-    refreshTimezone();
-    hourclock(); 
-  }else{
-    updatedatediff();
-  }
+  if (running) displayed_date = new Date();
+   // refreshTimezone();
+  hourclock(); 
 }
 
-function updatedatediff(){
-  var d = new Date();
-    var diff = d.getTime() - displayed_date.getTime();
-    document.getElementById('datedifference').innerHTML = formatInterval(diff);
-}
-
-function formatInterval(interval){
-  var future = interval < 0;
-  if (future) interval *= -1;	
-  var s = Math.floor(interval/1000);
+function dateDifference(d){
+  var now = new Date();
+  var diff = now.getTime() - d.getTime();
+  var future = diff < 0;
+  if (future) diff *= -1;	
+  var s = Math.floor(diff/1000);
   var days = Math.floor(s/86400);
 	s -= (days * 86400);
   var h = Math.floor(s / 3600);
 	s -= (h * 3600);
 	var m =Math.floor(s / 60);
 	s -= (m * 60);
-
 	var result = future?"+ ":"- ";
 	if(days>0){
 		if(days>1)
@@ -357,7 +355,6 @@ function addToDate(s){
   refreshTimezone();
   hourclock(); 
   lourclock(); 
-  updatedatediff();
 }
 
 var runfastspeed = 0;
@@ -373,6 +370,7 @@ function runFast(s){
 
 function stop(){
   running = false;
+  document.getElementById('play').innerHTML = ">";
   runfastspeed = 0;
   clearInterval(lanotimer);
   clearInterval(licrotimer);
@@ -382,7 +380,7 @@ function stop(){
 
 document.getElementById('fastreverse').addEventListener('click', (e) => {
   var s = runfastspeed;
-  stop()
+  stop();
   if (s>=0)s=-3600;
   else if (s==-3600)s=-86400;
   else s *= 2;
@@ -390,13 +388,7 @@ document.getElementById('fastreverse').addEventListener('click', (e) => {
 });
 
 document.getElementById('play').addEventListener('click', (e) => {
-  if (e.target.textContent === '>'){
-    e.target.textContent = "||";
-    start(); 
-  } else {
-    e.target.textContent = ">";
-    stop();
-  }
+  running || runfastspeed > 0 ? stop() : start(); 
   document.getElementById('secondhand').style.visibility = 'visible';
   document.getElementById('minutehand').style.visibility = 'visible';
 });
@@ -440,10 +432,8 @@ for (var i = 0; i < 12; i++) {
 }
 function setToNumber(l){
   stop();
-  var localsecondsintoday = (Math.floor(86400 * displayed_date.timepart()) + 43200 - (localtimeoffset * 60)) % 86400;
-  var pmseconds = localsecondsintoday >= 43200 ? 43200 : 0;
-  var newlocalseconds = (l%12)*3600.0 + pmseconds ;
-  alert('debug ' + localsecondsintoday + ' ' + newlocalseconds + ' '+displayed_date.getTime())
+  var localsecondsintoday = (86400 * displayed_date.timepart() + 43200 - (localtimeoffset * 60)) % 86400;
+  var newlocalseconds = (l%12)*3600.0 + (localsecondsintoday >= 43200 ? 43200 : 0);
   var newtime = new Date();
   newtime.setTime(displayed_date.getTime() - (localsecondsintoday - newlocalseconds) * 1000);
   setToDate(newtime);
@@ -456,51 +446,42 @@ for (var i = 0; i < 26; i++) {
   });
 }
 
-/*
-var places = document.getElementsByClassName('place');
-for (var i = 0; i < 11; i++) {
-  places[i].addEventListener('mousemove',(e)  => {
-    if(placetouched){
-      //alert(placetouched+ " y=" + e.y )
-      document.getElementById('mapcolors').innerHTML =  placetouched+ " y=" + e.y ;
-    }
-  });
-  places[i].addEventListener('mouseup',(e)  => {
-    placetouched = 0;
-    document.getElementById('mapcolors').innerHTML =  placetouched+ " y=" + e.y ;
-  });
-}
-*/
-
 el("lourClock").addEventListener('mousemove',(e)  => {
-    if(placetouched){
-      var s = displayed_date.to26lr();
-      var p = placetouched - (placetouched<6?1:0);
-      var d = s.charCodeAt(p)-65;
-      d += e.y - placetouchedstart;
-      if (d<0) d = 0;
-      else if (p == 4 && d > 6) d = 6;
-      else if (d>25) d = 25;
-      placetouchedstart = e.y;
-      document.getElementById('mapcolors').innerHTML = s.substr(0,p)+String.fromCharCode(d+65)+s.substr(p+1,11-p);
-      setToDate(s.substr(0,p)+String.fromCharCode(d+65)+s.substr(p+1,11-p));
-    }
-  });
+  if(placetouched) moveDigit(e.y);
+});
+
+el("lourClock").addEventListener('touchmove',(e)  => {
+  if(placetouched) moveDigit(Math.floor(e.changedTouches[0].pageY));
+});
 
 el("lourClock").addEventListener('mouseup',(e)  => {
   placetouched = 0;
-  document.getElementById('mapcolors').innerHTML =  "" ;
 });
 
 el("lourClock").addEventListener('mouseout',(e)  => {
   placetouched = 0;
-  document.getElementById('mapcolors').innerHTML =  "" ;
+});
+
+el("lourClock").addEventListener('touchend',(e)  => {
+  placetouched = 0;
 });
 
 function adjust(place) {
   stop();
-  placetouchedstart = event.y;
-  placetouched = place;
+  placetouchedstart = place > 0 ? event.y : event.changedTouches[0].pageY;
+  placetouched = Math.abs(place);
+}
+
+function moveDigit(y){
+  var s = displayed_date.to26lr();
+  var p = placetouched - (placetouched<6?1:0);
+  var d = s.charCodeAt(p)-65;
+  d += y - placetouchedstart;
+  if (d<0) d = 0;
+  else if (p == 4 && d > 6) d = 6;
+  else if (d>25) d = 25;
+  placetouchedstart = y;
+  setToDate(s.substr(0,p)+String.fromCharCode(d+65)+s.substr(p+1,11-p));
 }
 
 
@@ -1239,10 +1220,7 @@ btnGetTimezone.addEventListener("click", () => {
     promise1.then(function(value) {
       selectFullList.value = value.timezoneId;
     });
-
-
 });
-
 
 window.onclick = function(event) {
   if (event.target == AddTimezoneBox) {
