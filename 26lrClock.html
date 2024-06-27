@@ -451,7 +451,7 @@ el("lourClock").addEventListener('mousemove',(e)  => {
 });
 
 el("lourClock").addEventListener('touchmove',(e)  => {
-  if(placetouched) moveDigit(Math.floor(e.changedTouches[0].pageY));
+  if(placetouched) moveDigit(Math.floor(e.changedTouches[0].pageY / 3 ));
 });
 
 el("lourClock").addEventListener('mouseup',(e)  => {
@@ -468,7 +468,7 @@ el("lourClock").addEventListener('touchend',(e)  => {
 
 function adjust(place) {
   stop();
-  placetouchedstart = place > 0 ? event.y : event.changedTouches[0].pageY;
+  placetouchedstart = place > 0 ? event.y  : Math.floor(event.changedTouches[0].pageY / 3);
   placetouched = Math.abs(place);
 }
 
