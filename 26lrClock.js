@@ -1,16 +1,15 @@
 // 26lr Clock Date Functions
 // Now using 7 Day A-G Weeks TZYOC
 // by John Howard JZYTH 
-
-function DateFrom26Lr(s) {
+Date.prototype.from26Lr = function (s) {
 	if (s.indexOf(":")==-1) s = ":"+s;	
 	s = s.split(":");
 	lrdate=s[0];
 	lrtime=s[1];
 	var weeks = 0;
 	var days = 0;
-	now = new Date;
-	defaultmask = now.to26lr();
+	//now = new Date;
+	defaultmask = this.to26lr();
 	lrdate = defaultmask.substring(0,5-lrdate.length) + lrdate;
 
 	days = (lrdate.charCodeAt(4)-65);
@@ -32,7 +31,7 @@ function DateFrom26Lr(s) {
 }
 
 function longitudeto26lr(l){
-	//input longitude -180 (East) to 180 (West)
+	//input longitude -180 (West) to 180 (East)
 	//return 26 Lr Time of Mean Noon there
 	var t = l<=0? l / -360 : (360-l)/360 ;
 	var b26t = t.toString(26);
@@ -180,3 +179,25 @@ Date.prototype.equationoftime = function(){
 	return E
 	
 }
+
+Date.prototype.dateDifference = function (d){
+	var diff = d.getTime() - this.getTime();
+	var future = diff < 0;
+	if (future) diff *= -1;	
+	var s = Math.floor(diff/1000);
+	var days = Math.floor(s/86400);
+	  s -= (days * 86400);
+	var h = Math.floor(s / 3600);
+	  s -= (h * 3600);
+	  var m =Math.floor(s / 60);
+	  s -= (m * 60);
+	  var result = future?"+ ":"- ";
+	  if(days>0){
+		  if(days>1)
+			  result += days + " Days ";
+		  else
+			  result += days + " Day ";
+	}
+	result += h + (m<10?":0":":") + m + (s<10?":0":":") + s;
+	return result;
+  }
