@@ -148,7 +148,9 @@ body {
   <label for="dateinput">Set to:</label>
   <input type="text" id="dateinput" >
 </div>
-
+<div>
+  <span id="debug"></span>
+</div>
 <div id="AddTimezoneBox" class="modal">
   <div class="modal-content">
     <p>Stored Location/Zone:</p>
@@ -171,6 +173,11 @@ body {
 
 
 <script>
+window.onload = () => {"use strict";
+  if ("serviceWorker" in navigator && document.URL.split(":")[0] !== "file"){
+    navigator.serviceWorker.register("./26lrClockServiceWorker.js");
+  }
+}
 
 function el(s){return document.getElementById(s)};
 
@@ -185,26 +192,6 @@ el('hourClock').innerHTML += html;
 
 var number = document.getElementsByClassName('number');
 var letter = document.getElementsByClassName('letter');
-/*
-html = "";
-for (var i = 0; i < 360; i++) {
-  html += "<span class='meridian'>"+i+"</span>";
-}
-el('mapcolors').innerHTML = html;
-var merid = document.getElementsByClassName('meridian');
-for (var i = 0; i < 360; i++) {
-  merid[i].style.backgroundColor = "hsl("+i+", 100%, 50%)";
-}
-the hsl gets turned into rgb adding or subtracting 4.25 each degree
-Red 0  255,0,0
-orange 39 255,165,0
-yellow 60  255,255,0
-green 120  0,255,0
-aqua 180  0,255,255
-blue 240  0,0,255
-purple 300  255,0,255
-Red 359 255,0,4
-*/
 
 for (var i = 0; i < 26; i++) {
   letter[i].style.color = "hsl("+i%26*13.85+", 100%, 50%)";
@@ -239,7 +226,9 @@ var handtouched;
 var handtime;
 
 
-function lourclock(){
+function lourclock(d){
+  if (d) displayed_date = d;
+
 	var digits = displayed_date.to26lr().split("");
   var lourclock = document.getElementsByClassName('place');
   
@@ -281,24 +270,24 @@ function updatelanos(){
 	lanos++;
 }
 
-function hourclock() {
+function hourclock(d) {
+  if (d) displayed_date = d;
   var lto;
-  if (sundial) lto = localtimeoffset + displayed_date.equationoftime()
-  else {
-    localtimeoffset = getTimezoneOffset(stimezone);
+  if (sundial) {
+    lto = localtimeoffset + displayed_date.equationoftime()
+  } else {
+    localtimeoffset = displayed_date.getTZOffset(stimezone);
     lto = localtimeoffset;
   }
-  
   localsecondsintoday = Math.floor(86400 * displayed_date.timepart() + 43200 - (lto * 60)) % 86400;
-  
   //if (isAM == localsecondsintoday < 43200)
 	 hDeg = 360 * (localsecondsintoday % 43200)/43200;
 	 mDeg = 360 * (localsecondsintoday % 3600)/3600;
-	 sDeg = 360 * (localsecondsintoday % 60)/60;
+   sDeg = 360 * (localsecondsintoday % 60)/60;
   document.getElementById('hourhand').style.transform = "rotate("+hDeg+"deg)";
-  document.getElementById('hourhand').style.backgroundColor = "hsl("+ displayed_date.timepart()*360+", 100%, 50%)";
   document.getElementById('minutehand').style.transform = "rotate("+mDeg+"deg)";
   document.getElementById('secondhand').style.transform = "rotate("+sDeg+"deg)";
+  document.getElementById('hourhand').style.backgroundColor = "hsl("+ displayed_date.timepart()*360+", 100%, 50%)";
   var h = (Math.floor(localsecondsintoday / 3600) % 12);
   var m = (Math.floor(localsecondsintoday / 60) % 60);
   var s = (Math.floor(localsecondsintoday) % 60);
@@ -315,7 +304,12 @@ function hourclock() {
     timeZone: stimezone,
     timeZoneName: 'short'
   });
-  document.getElementById('datedifference').innerHTML = running ? "Current Time" : displayed_date.dateDifference(new Date());;
+  updateDifference();
+
+}
+
+function updateDifference(){
+  document.getElementById('datedifference').innerHTML = running ? "Current Time" : displayed_date.dateDifference(new Date());
 }
 
 function isDST(d) {
@@ -334,7 +328,7 @@ function changeTimezone(){
     localtimeoffset = (sundialloc[1]/180*720*-1);
     document.getElementById('zoneInfo').innerHTML= longitudeto26lr(sundialloc[1]);
   }else{
-    localtimeoffset = getTimezoneOffset(stimezone);
+    localtimeoffset = displayed_date.getTZOffset(stimezone);
     document.getElementById('zoneInfo').innerHTML=stimezone;    
   }
   setClockColors(longitudetocolor(localtimeoffset / -720 * 180));
@@ -352,32 +346,21 @@ function setClockColors(c){
   document.getElementById('zoneInfo').style.color = c;
  }
 
- 
-function getTimezoneOffset(tz){
-  var h = displayed_date.toLocaleString("en-US", {
-    timeZone: tz,
-    timeZoneName: 'shortOffset'
-  }).split('GMT')[1];
-  if (isNaN(h.valueOf())) {
-    return (h.split(':')[0].valueOf() * -60 - h.split(':')[1].valueOf() );
-   }
-  return h.valueOf() * -60;
-}
-
-
 function start(){
   changeTimezone();
   running = true;
   document.getElementById('play').innerHTML = "||";
   runfastspeed = 0;
   clearInterval(runfasttimer);
-	runLourclock();
-  runHourclock();
-	licrotimer = setInterval("runLourclock()", 189);
+  displayed_date = new Date();
+	lourclock();
+  hourclock();
+  secondtimer = setInterval("hourclock(new Date())", 1000);
+	licrotimer = setInterval("lourclock(new Date())", 189);
   lanotimer = setInterval("updatelanos()", 7);
 
 }
-
+/*
 function runLourclock(){
 	displayed_date = new Date();
 	lourclock();
@@ -389,7 +372,7 @@ function runHourclock(){
     hourclock(); 
   }
   else document.getElementById('datedifference').innerHTML = displayed_date.dateDifference(new Date());
-}
+}*/
 
 
 function addToDate(s){
@@ -401,6 +384,7 @@ function addToDate(s){
 var runfastspeed = 0;
 function runFast(s){
   stop();
+  clearInterval(secondtimer);
   runfastspeed=s;
   runfasttimer = setInterval("addToDate("+runfastspeed+")",50);
   document.getElementById('play').innerHTML = "||";
@@ -412,9 +396,11 @@ function stop(){
   running = false;
   document.getElementById('play').innerHTML = ">";
   runfastspeed = 0;
-  clearInterval(lanotimer);
+  clearInterval(secondtimer);
+  clearInterval(lanotimer); 
   clearInterval(licrotimer);
   clearInterval(runfasttimer);
+  secondtimer = setInterval("updateDifference();", 1000);
 }
 
 document.getElementById('fastreverse').addEventListener('click', (e) => {
@@ -525,6 +511,7 @@ function moveDigit(y){
 
 function touchhand(h){
   stop();
+  clearInterval(secondtimer);
   handtime = Math.abs(h);
   handtouched = event;//h > 0 ? event : event.changedTouches[0];
 }
@@ -551,9 +538,11 @@ el("hourClock").addEventListener('mousemove',(e)  => {
 
 el("hourClock").addEventListener('touchend',(e)  => {
   handtouched = 0;
+  secondtimer = setInterval("updateDifference();", 1000);
 });
 el("hourClock").addEventListener('mouseup',(e)  => {
   handtouched = 0;
+  secondtimer = setInterval("updateDifference();", 1000);
 });
 
 
@@ -656,7 +645,7 @@ document.getElementById('zoneName').addEventListener('click', (e) => {
   localStorage.setItem('selectedTimeZone',selectedTimeZone);
   changeTimezone();
   hourclock();
-  lourclock();
+  //lourclock(); unnecessary!
 });
 
 document.getElementById('zoneInfo').addEventListener('click', (e) => {
@@ -1268,10 +1257,7 @@ document.getElementById('zoneInfo').addEventListener('click', (e) => {
   AddTimezoneBox.style.display = "block";    
 });
 
-secondtimer = setInterval("runHourclock()", 1000);
 start();
-
-
 
 </script>
 

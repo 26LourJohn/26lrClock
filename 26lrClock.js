@@ -201,3 +201,15 @@ Date.prototype.dateDifference = function (d){
 	result += h + (m<10?":0":":") + m + (s<10?":0":":") + s;
 	return result;
   }
+
+  Date.prototype.getTZOffset = function(tz){
+	var h = this.toLocaleString("en-US", {
+	  timeZone: tz,
+	  timeZoneName: 'shortOffset'
+	}).split('GMT')[1];
+	document.getElementById('debug').innerHTML = h;
+	if (isNaN(h.valueOf())) {
+	  return (h.split(':')[0].valueOf() * -60 - h.split(':')[1].valueOf() );
+	 }
+	return h.valueOf() * -60;
+  }
