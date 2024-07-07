@@ -207,7 +207,6 @@ Date.prototype.dateDifference = function (d){
 	  timeZone: tz,
 	  timeZoneName: 'shortOffset'
 	}).split('GMT')[1];
-	document.getElementById('debug').innerHTML = h;
 	if (isNaN(h.valueOf())) {
 	  return (h.split(':')[0].valueOf() * -60 - h.split(':')[1].valueOf() );
 	 }

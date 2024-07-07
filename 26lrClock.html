@@ -111,8 +111,6 @@ body {
 }
 </style>
 </head>
-
-
 <body>
   <div id="datedifference"></div>
   <div id="lourClock">
@@ -171,13 +169,32 @@ body {
 </div>
 </body>
 
-
 <script>
+var running = false;
+var runfastspeed = 0;
+var secondtimer,licrotimer,lanotimer,runfasttimer,differencetimer;
+var hDeg, mDeg, sDeg, isAM;
+var localsecondsintoday;
+var displayed_date = new Date();
+var localtimeOffset; //in minutes from GMT
+var sundial; //longitude or 0 for mean time
+var eot; //in minutes
+var stimezone;
+var oldlour = -1;
+var placetouched;
+var placetouchedstart;
+var handtouched;
+var handtime;
+
 window.onload = () => {"use strict";
   if ("serviceWorker" in navigator && document.URL.split(":")[0] !== "file"){
     navigator.serviceWorker.register("./26lrClockServiceWorker.js");
   }
 }
+const params = new Proxy(new URLSearchParams(window.location.search), {
+  get: (searchParams, prop) => searchParams.get(prop),
+});
+//var precision = params.precision || 5;
 
 function el(s){return document.getElementById(s)};
 
@@ -190,45 +207,24 @@ for (var i = 1; i < 13; i++) {
 }
 el('hourClock').innerHTML += html;
 
-var number = document.getElementsByClassName('number');
 var letter = document.getElementsByClassName('letter');
-
 for (var i = 0; i < 26; i++) {
   letter[i].style.color = "hsl("+i%26*13.85+", 100%, 50%)";
+  letter[i].addEventListener('click',(e) => {setClockTo(event.target.textContent)});
 }
-
+var number = document.getElementsByClassName('number');
 for (var i = 0; i < 12; i++) {
     var r = 150;
     var h = (i+1)/12;
     var x =  Math.round(r * Math.sin(h*2*Math.PI));
     var y =  0-Math.round(r * Math.cos(h*2*Math.PI));
     number[i].style.translate = x+"px "+y+"px";
+    number[i].addEventListener('click',(e)  => {setToNumber(event.target.textContent)});
 }
-
-const params = new Proxy(new URLSearchParams(window.location.search), {
-  get: (searchParams, prop) => searchParams.get(prop),
-});
-//var precision = params.precision || 5;
-
-var running = false;
-var analogtimer,licrotimer,lanotimer,runfasttimer;
-var hDeg, mDeg, sDeg;
-var localsecondsintoday;
-var displayed_date = new Date();
-var localtimeOffset; //in minutes from GMT
-var sundial;
-var eot; //in minutes
-var stimezone;
-var oldlour = -1;
-var placetouched;
-var placetouchedstart;
-var handtouched;
-var handtime;
 
 
 function lourclock(d){
   if (d) displayed_date = d;
-
 	var digits = displayed_date.to26lr().split("");
   var lourclock = document.getElementsByClassName('place');
   
@@ -240,26 +236,23 @@ function lourclock(d){
     	lourclock[i].innerHTML=digits[i];
   }
   
-  if(oldlour!=digits[6]){ // i<=6){
-    var lto = localtimeoffset + (sundial ? displayed_date.equationoftime() : 0);
+  if(oldlour!=digits[6]){
   	var l = digits[6].charCodeAt(0)-65;
-  	var h = l/13 - (lto/720);
     var r = 84;
     for (var i=0;i<26;i++){
 	  	if (l>25) l=0;
-      h = l/13 - (lto/720);
+      var h = l/13 - (localtimeoffset/720);
       r += i<13 ? 4*i/13 : 3*(26-i)/13;
-			//if (i==13)r = 130;
 			var x =  0 + (r * Math.sin(h*2*Math.PI));
 			var y =  0 - (r * Math.cos(h*2*Math.PI));
 			letter[l].style.translate = x+"px "+y+"px";
 			letter[l].style.scale = (36-i)/36;
 			l++;
     }
+    oldlour = digits[6];
   }
   lourclock[5].style.color = "hsl("+ displayed_date.timepart()*360+", 100%, 50%)";
   lanos = digits[10].charCodeAt(0)-65;	
-  oldlour = digits[6];
 }
 
 var lanos = 0; //reduces cpu by fudging lanos digit? 
@@ -272,15 +265,9 @@ function updatelanos(){
 
 function hourclock(d) {
   if (d) displayed_date = d;
-  var lto;
-  if (sundial) {
-    lto = localtimeoffset + displayed_date.equationoftime()
-  } else {
-    localtimeoffset = displayed_date.getTZOffset(stimezone);
-    lto = localtimeoffset;
-  }
-  localsecondsintoday = Math.floor(86400 * displayed_date.timepart() + 43200 - (lto * 60)) % 86400;
-  //if (isAM == localsecondsintoday < 43200)
+  changeTimezone();
+  localsecondsintoday = Math.floor(86400 * displayed_date.timepart() + 43200 - (localtimeoffset * 60)) % 86400;
+   isAM = localsecondsintoday < 43200;
 	 hDeg = 360 * (localsecondsintoday % 43200)/43200;
 	 mDeg = 360 * (localsecondsintoday % 3600)/3600;
    sDeg = 360 * (localsecondsintoday % 60)/60;
@@ -291,7 +278,7 @@ function hourclock(d) {
   var h = (Math.floor(localsecondsintoday / 3600) % 12);
   var m = (Math.floor(localsecondsintoday / 60) % 60);
   var s = (Math.floor(localsecondsintoday) % 60);
-  var a = localsecondsintoday < 43200 ? " AM" : " PM";
+  var a = isAM ? " AM" : " PM";
   document.getElementById('clocktime').innerHTML = (h<1?"12":h) + (m<10?":0":":") + m + (s<10?":0":":") + s + a;
   document.getElementById('datestring').innerHTML = displayed_date.toLocaleDateString("en-US",{
     timeZone: stimezone,
@@ -304,11 +291,11 @@ function hourclock(d) {
     timeZone: stimezone,
     timeZoneName: 'short'
   });
-  updateDifference();
-
+  
+  updateDifference()
 }
 
-function updateDifference(){
+function updateDifference() {
   document.getElementById('datedifference').innerHTML = running ? "Current Time" : displayed_date.dateDifference(new Date());
 }
 
@@ -323,9 +310,9 @@ function changeTimezone(){
   var stz = storedTimeZones[selectedTimeZone];
   stimezone = stz[1];
   var sundialloc = stz[2].split(",");
-  sundial = sundialloc.length>1;
+  sundial = sundialloc.length>1 ? sundialloc[1] : 0;
   if (sundial){
-    localtimeoffset = (sundialloc[1]/180*720*-1);
+    localtimeoffset = (sundialloc[1]/180*720*-1) + displayed_date.equationoftime();
     document.getElementById('zoneInfo').innerHTML= longitudeto26lr(sundialloc[1]);
   }else{
     localtimeoffset = displayed_date.getTZOffset(stimezone);
@@ -349,31 +336,18 @@ function setClockColors(c){
 function start(){
   changeTimezone();
   running = true;
-  document.getElementById('play').innerHTML = "||";
   runfastspeed = 0;
   clearInterval(runfasttimer);
+  clearInterval(differencetimer);
   displayed_date = new Date();
-	lourclock();
   hourclock();
+	lourclock();
   secondtimer = setInterval("hourclock(new Date())", 1000);
 	licrotimer = setInterval("lourclock(new Date())", 189);
   lanotimer = setInterval("updatelanos()", 7);
-
+ // document.getElementById('datedifference').innerHTML = "Current Time";
+  document.getElementById('play').innerHTML = "||";
 }
-/*
-function runLourclock(){
-	displayed_date = new Date();
-	lourclock();
-}
-
-function runHourclock(){
-  if (running){
-    displayed_date = new Date();
-    hourclock(); 
-  }
-  else document.getElementById('datedifference').innerHTML = displayed_date.dateDifference(new Date());
-}*/
-
 
 function addToDate(s){
   displayed_date = new Date(displayed_date.getTime()+s);
@@ -381,10 +355,9 @@ function addToDate(s){
   lourclock(); 
 }
 
-var runfastspeed = 0;
 function runFast(s){
   stop();
-  clearInterval(secondtimer);
+  clearInterval(differencetimer);
   runfastspeed=s;
   runfasttimer = setInterval("addToDate("+runfastspeed+")",50);
   document.getElementById('play').innerHTML = "||";
@@ -400,8 +373,11 @@ function stop(){
   clearInterval(lanotimer); 
   clearInterval(licrotimer);
   clearInterval(runfasttimer);
-  secondtimer = setInterval("updateDifference();", 1000);
+  differencetimer = setInterval("updateDifference();", 1000);
 }
+
+
+
 
 document.getElementById('fastreverse').addEventListener('click', (e) => {
   var s = runfastspeed;
@@ -442,20 +418,6 @@ function setClockTo(s){
   lourclock();
 }
 
-document.getElementById('datestring').addEventListener('click', (e) => {
-  var mydiv = document.getElementById('SetToDiv');
-  if (mydiv.style.display === 'block' || mydiv.style.display === '')
-    mydiv.style.display = 'none';
-  else
-    mydiv.style.display = 'block'
-});
-
-var numbers = document.getElementsByClassName('number');
-for (var i = 0; i < 12; i++) {
-  numbers[i].addEventListener('click',(e)  => {
-    setToNumber(event.target.textContent );
-  });
-}
 function setToNumber(l){
   stop();
   var newlocalseconds = (l%12)*3600.0 + (localsecondsintoday >= 43200 ? 43200 : 0);
@@ -464,12 +426,14 @@ function setToNumber(l){
   lourclock();
 }
 
-var letters = document.getElementsByClassName('letter');
-for (var i = 0; i < 26; i++) {
-  letters[i].addEventListener('click',(e)  => {
-    setClockTo(event.target.textContent );
-  });
-}
+el('datestring').addEventListener('click', (e) => {
+  var mydiv = document.getElementById('SetToDiv');
+  if (mydiv.style.display === 'block' || mydiv.style.display === '')
+    mydiv.style.display = 'none';
+  else
+    mydiv.style.display = 'block'
+});
+
 
 el("lourClock").addEventListener('mousemove',(e)  => {
   if(placetouched) moveDigit(e.y);
@@ -511,7 +475,7 @@ function moveDigit(y){
 
 function touchhand(h){
   stop();
-  clearInterval(secondtimer);
+  clearInterval(differencetimer);
   handtime = Math.abs(h);
   handtouched = event;//h > 0 ? event : event.changedTouches[0];
 }
@@ -538,11 +502,11 @@ el("hourClock").addEventListener('mousemove',(e)  => {
 
 el("hourClock").addEventListener('touchend',(e)  => {
   handtouched = 0;
-  secondtimer = setInterval("updateDifference();", 1000);
+  differencetimer = setInterval("updateDifference();", 1000);
 });
 el("hourClock").addEventListener('mouseup',(e)  => {
   handtouched = 0;
-  secondtimer = setInterval("updateDifference();", 1000);
+  differencetimer = setInterval("updateDifference();", 1000);
 });
 
 
@@ -1260,5 +1224,7 @@ document.getElementById('zoneInfo').addEventListener('click', (e) => {
 start();
 
 </script>
+
+
 
 </html>
