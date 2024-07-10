@@ -66,26 +66,26 @@ body {
 
 #hourhand {
 	//z-index: 10;
-  width: 6px;
+  width: 8px;
   height: 45px;
   background: #999;
-  margin-left: -3px;
+  margin-left: -4px;
   margin-top: 105px;
 }
 
 #minutehand {
-  width: 4px;
+  width: 6px;
   height: 60px;
   background: #999;
-  margin-left: -2px;
+  margin-left: -3px;
   margin-top: 90px;
 }
 
 #secondhand {
-  width: 2px;
+  width: 4px;
   height: 64px;
   background: #999;
-  margin-left: -1px;
+  margin-left: -2px;
   margin-top: 86px;
 }
 
@@ -214,7 +214,7 @@ for (var i = 0; i < 26; i++) {
 }
 var number = document.getElementsByClassName('number');
 for (var i = 0; i < 12; i++) {
-    var r = 150;
+    var r = 156;
     var h = (i+1)/12;
     var x =  Math.round(r * Math.sin(h*2*Math.PI));
     var y =  0-Math.round(r * Math.cos(h*2*Math.PI));
@@ -238,7 +238,7 @@ function lourclock(d){
   
   if(oldlour!=digits[6]){
   	var l = digits[6].charCodeAt(0)-65;
-    var r = 84;
+    var r = 90;
     for (var i=0;i<26;i++){
 	  	if (l>25) l=0;
       var h = l/13 - (localtimeoffset/720);
@@ -345,7 +345,7 @@ function start(){
   secondtimer = setInterval("hourclock(new Date())", 1000);
 	licrotimer = setInterval("lourclock(new Date())", 189);
   lanotimer = setInterval("updatelanos()", 7);
- // document.getElementById('datedifference').innerHTML = "Current Time";
+  document.getElementById('datedifference').innerHTML = "Current Time";
   document.getElementById('play').innerHTML = "||";
 }
 
@@ -373,6 +373,7 @@ function stop(){
   clearInterval(lanotimer); 
   clearInterval(licrotimer);
   clearInterval(runfasttimer);
+  clearInterval(differencetimer);
   differencetimer = setInterval("updateDifference();", 1000);
 }
 
@@ -502,10 +503,12 @@ el("hourClock").addEventListener('mousemove',(e)  => {
 
 el("hourClock").addEventListener('touchend',(e)  => {
   handtouched = 0;
+  clearInterval(differencetimer);
   differencetimer = setInterval("updateDifference();", 1000);
 });
 el("hourClock").addEventListener('mouseup',(e)  => {
   handtouched = 0;
+  clearInterval(differencetimer);
   differencetimer = setInterval("updateDifference();", 1000);
 });
 
