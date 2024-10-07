@@ -255,7 +255,7 @@ function updatelanos(){
 function hourclock(d) {
   if (d) displayed_date = d;
    
-  eot = displayed_date.equationoftime();
+  eot = sundial ? displayed_date.equationoftime() : 0;
   localsecondsintoday = Math.floor(86400 * displayed_date.timepart() + 43200 - ((localtimeoffset + eot) * 60)) % 86400;
    isAM = localsecondsintoday < 43200;
 	 hDeg = 360 * (localsecondsintoday % 43200)/43200;
