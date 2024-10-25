@@ -287,11 +287,11 @@ function hourclock(d) {
 
 function repositionLetterLabels() {
   var l = digits[6].charCodeAt(0)-65;
-  var r = 90;
+  var r = 70;
   for (var i=0;i<26;i++){
     if (l>25) l=0;
     var h = l/13 - (localtimeoffset + eot)/720;
-    r += i<13 ? 4*i/13 : 3*(26-i)/13;
+    r += i<14 ? 3 : 2;
     var x =  0 + (r * Math.sin(h*2*Math.PI));
     var y =  0 - (r * Math.cos(h*2*Math.PI));
     letter[l].style.translate = x+"px "+y+"px";
@@ -318,7 +318,7 @@ function changeTimezone(){
   sundial = sundialloc.length>1 ? sundialloc[1] : 0;
   if (sundial){
     localtimeoffset = (sundialloc[1]/180*720*-1);
-    document.getElementById('zoneInfo').innerHTML= longitudeto26lr(sundialloc[1]);
+    document.getElementById('zoneInfo').innerHTML= sundialloc;//longitudeto26lr(sundialloc[1]);
   }else{
     localtimeoffset = displayed_date.getTZOffset(stimezone);
     document.getElementById('zoneInfo').innerHTML=stimezone;    
