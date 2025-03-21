@@ -2,7 +2,6 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<!-- Add to home screen for Safari on iOS -->
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="26lr Clock">
@@ -50,8 +49,10 @@ body {
 
 #lourClock{margin: 30 0 60 0; white-space: nowrap; }
 #zoneDiv{margin: auto; width:320px;}
-#zoneName{float:left; margin: -15 }
-#zoneInfo{float:right; margin: -15  }
+#zoneName{float:left; margin: -15;}
+#curLoc{float:right; margin-top:5px;font-size:36px;color:grey}
+#settingsIcon{ margin-top:15px;font-size:36px;color:grey}
+#zoneInfo{float:right; margin: -15;}
 #hourClock{ margin: 0 0; height:320px;}
 
 .transport{padding: 30px;}
@@ -65,7 +66,6 @@ body {
 }
 
 #hourhand {
-	//z-index: 10;
   width: 8px;
   height: 45px;
   background: #999;
@@ -127,7 +127,7 @@ body {
     <span class="place" onmousedown="adjust(10)" ontouchstart="adjust(-10)" id="lanos">-</span>
   </div>
   
-  <div id="zoneDiv"><span id="zoneName"></span> <span id="zoneInfo"></span></div>
+  <div id="zoneDiv"><span id="zoneName"></span><span id="zoneInfo"></span></div>
  	<div id="hourClock">
     <div class="hand" id="minutehand" onmousedown="touchhand(3600)" ontouchstart="touchhand(-3600)"></div>
     <div class="hand" id="secondhand" onmousedown="touchhand(60)" ontouchstart="touchhand(-60)"></div>
@@ -149,6 +149,9 @@ body {
 <div>
   <span id="debug"></span>
 </div>
+<div>
+  <span id="SettingsIcon">&#x2699;</span>
+</div>
 <div id="AddTimezoneBox" class="modal">
   <div class="modal-content">
     <p>Stored Location/Zone:</p>
@@ -167,6 +170,25 @@ body {
     <button id="btnCloseZoneBox">Done</button>
   </div>
 </div>
+<div id="SettingsBox" class="modal">
+  <div class="modal-content">
+    <p>26Lr Clock Settings</p>
+    <label for="LourClockPlaces">Lour Clock Places:</label>
+    <select id="LourClockPlaces">
+      <option value="3">3</option>
+      <option value="4">4</option>
+      <option value="5">5</option>
+    </select>
+    <br>
+    <label for="colorSetting">Color Scheme:</label>
+    <select id="colorSetting">
+      <option value="1">Spectrum 1</option>
+      <option value="2">Spectrum 2</option>
+      <option value="3">White on Black</option>
+    </select>
+    <button id="btnCloseSettingsBox">Done</button>
+  </div>
+</div>
 </body>
 
 <script>
@@ -182,6 +204,7 @@ var sundial; //longitude or 0 for mean time
 var eot; //in minutes
 var stimezone;
 var oldlour = -1;
+var lourplaces = 5;
 var placetouched;
 var placetouchedstart;
 var handtouched;
@@ -223,6 +246,13 @@ for (var i = 0; i < 12; i++) {
     number[i].addEventListener('click',(e)  => {setToNumber(event.target.textContent)});
 }
 
+function formatLourClock(p){
+  var lourclock = document.getElementsByClassName('place');
+  for (i=0;i<=10;i++){
+    lourclock[i].style.display = (i<(5-p) || i>(p+5) ? "none" : "inline");
+  }
+}
+
 function lourclock(d){
   if (d) displayed_date = d;
 	digits = displayed_date.to26lr().split("");
@@ -256,7 +286,7 @@ function hourclock(d) {
   if (d) displayed_date = d;
    
   eot = sundial ? displayed_date.equationoftime() : 0;
-  localsecondsintoday = Math.floor(86400 * displayed_date.timepart() + 43200 - ((localtimeoffset + eot) * 60)) % 86400;
+  localsecondsintoday = Math.floor(86400 * displayed_date.timepart() + 43200 - ((localtimeoffset - eot) * 60)) % 86400;
    isAM = localsecondsintoday < 43200;
 	 hDeg = 360 * (localsecondsintoday % 43200)/43200;
 	 mDeg = 360 * (localsecondsintoday % 3600)/3600;
@@ -290,7 +320,7 @@ function repositionLetterLabels() {
   var r = 70;
   for (var i=0;i<26;i++){
     if (l>25) l=0;
-    var h = l/13 - (localtimeoffset + eot)/720;
+    var h = l/13 - (localtimeoffset - eot)/720;
     r += i<14 ? 3 : 2;
     var x =  0 + (r * Math.sin(h*2*Math.PI));
     var y =  0 - (r * Math.cos(h*2*Math.PI));
@@ -313,6 +343,11 @@ function isDST(d) {
 
 function changeTimezone(){
   var stz = storedTimeZones[selectedTimeZone];
+//  if(stz[0]=="Current Location"){
+//    navigator.geolocation.getCurrentPosition((position) => {
+//        stz[2] = position.coords.latitude.toFixed(3) + ", " + position.coords.longitude.toFixed(3);
+//      });
+//  }
   stimezone = stz[1];
   var sundialloc = stz[2].split(",");
   sundial = sundialloc.length>1 ? sundialloc[1] : 0;
@@ -339,6 +374,7 @@ function setClockColors(c){
  }
 
 function start(){
+  formatLourClock(lourplaces);
   clearInterval(runfasttimer);
   clearInterval(differencetimer);
   displayed_date = new Date();
@@ -347,10 +383,11 @@ function start(){
   running = true;
   runfastspeed = 0;
   hourclock();
-	lourclock();
+  lourclock();
+
   secondtimer = setInterval("hourclock(new Date())", 1000);
-	licrotimer = setInterval("lourclock(new Date())", 189);
-  lanotimer = setInterval("updatelanos()", 7);
+	licrotimer = setInterval("lourclock(new Date())", lourplaces==3 ? 4915 : 189);
+  if (lourplaces == 5) lanotimer = setInterval("updatelanos()", 7);
   document.getElementById('datedifference').innerHTML = "Current Time";
   document.getElementById('play').innerHTML = "||";
 }
@@ -522,12 +559,12 @@ el("hourClock").addEventListener('mouseup',(e)  => {
 
 
 
-//  localStorage.clear();
+  localStorage.clear();
 var storedTimeZones = JSON.parse(localStorage.getItem("storedTimeZones") || "[]");
 var selectedTimeZone = localStorage.getItem("selectedTimeZone") || 0;
 
 if (storedTimeZones.length==0){
-  storedTimeZones = [ 
+  storedTimeZones = [
     ["Boston","America/New_York","42.3, -71.1"],
     ["Detroit","America/New_York","42, -83"],
     ["Eastern US","America/New_York",""],
@@ -549,6 +586,9 @@ var btnAddZone = document.getElementById("btnAddZone");
 var btnRemoveZone = document.getElementById("btnRemoveZone");
 var closebtn = document.getElementById("btnCloseZoneBox");
 var selectFullList = document.getElementById("timezonefulllist");
+var SettingsBox = document.getElementById("SettingsBox");
+var settingsclosebtn = document.getElementById("btnCloseSettingsBox");
+
 
 selectFullList.addEventListener("change", (event) => {
   var s = event.target.value;
@@ -578,12 +618,25 @@ closebtn.onclick = function() {
   AddTimezoneBox.style.display = "none";
 }
 
+settingsclosebtn.onclick = function() {
+  if (lourplaces != document.getElementById("LourClockPlaces").value){
+    lourplaces = 1*document.getElementById("LourClockPlaces").value;
+    formatLourClock(lourplaces);
+    if (running){
+      stop();
+      start();
+    }
+  }
+  SettingsBox.style.display = "none";
+}
+
 getlocbtn.addEventListener("click", () => {
   latlong.value = "getting location"
   navigator.geolocation.getCurrentPosition((position) => {
     latlong.value = position.coords.latitude.toFixed(3) + ", " + position.coords.longitude.toFixed(3);
   });
 });
+
 
 btnGetTimezone.addEventListener("click", () => {
   var promise1 = new Promise(function(resolve, reject) {
@@ -609,6 +662,9 @@ btnGetTimezone.addEventListener("click", () => {
 window.onclick = function(event) {
   if (event.target == AddTimezoneBox) {
     AddTimezoneBox.style.display = "none";
+  }
+  if (event.target == SettingsBox) {
+    SettingsBox.style.display = "none";
   }
 }
 
@@ -1228,6 +1284,10 @@ document.getElementById('zoneInfo').addEventListener('click', (e) => {
   document.getElementById("latlong").value = storedTimeZones[selectedTimeZone][2];
   selectFullList.value = storedTimeZones[selectedTimeZone][1];
   AddTimezoneBox.style.display = "block";    
+});
+
+document.getElementById('SettingsIcon').addEventListener('click', (e) => {
+  SettingsBox.style.display = "block";    
 });
 
 start();
