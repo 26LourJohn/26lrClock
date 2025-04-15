@@ -54,7 +54,6 @@ body {
 #settingsIcon{ margin-top:15px;font-size:36px;color:grey}
 #zoneInfo{float:right; margin: -15;}
 #hourClock{ margin: 0 0; height:320px;}
-
 .transport{padding: 30px;}
 .transctl{padding: 30px; border: 1px}
 .hand {
@@ -64,7 +63,6 @@ body {
   border-top-right-radius: 50%;
   transform-origin: 50% 100%;
 }
-
 #hourhand {
   width: 8px;
   height: 45px;
@@ -72,7 +70,6 @@ body {
   margin-left: -4px;
   margin-top: 105px;
 }
-
 #minutehand {
   width: 6px;
   height: 60px;
@@ -80,7 +77,6 @@ body {
   margin-left: -3px;
   margin-top: 90px;
 }
-
 #secondhand {
   width: 4px;
   height: 64px;
@@ -88,7 +84,6 @@ body {
   margin-left: -2px;
   margin-top: 86px;
 }
-
 .modal {
   display: none; 
   position: fixed; 
@@ -103,11 +98,11 @@ body {
 }
 .modal-content {
   background-color: #000;
-  margin: 15% auto; 
-  padding: 20px;
+  margin: 8% auto; 
+  padding: 8px;
   border: 1px solid #888;
   border-radius: 5px;
-  width: 300px;
+  width: 320px;
 }
 </style>
 </head>
@@ -126,7 +121,6 @@ body {
 		<span class="place" onmousedown="adjust(9)" ontouchstart="adjust(-9)">-</span>
     <span class="place" onmousedown="adjust(10)" ontouchstart="adjust(-10)" id="lanos">-</span>
   </div>
-  
   <div id="zoneDiv"><span id="zoneName"></span><span id="zoneInfo"></span></div>
  	<div id="hourClock">
     <div class="hand" id="minutehand" onmousedown="touchhand(3600)" ontouchstart="touchhand(-3600)"></div>
@@ -172,7 +166,21 @@ body {
 </div>
 <div id="SettingsBox" class="modal">
   <div class="modal-content">
-    <p>26Lr Clock Settings</p>
+    <p>26 Letter Clock</p>
+    <p>DATE:TIME</p>
+    <p>A:A is Monday, 12:00 Noon UTC</p>
+    <p>26 Lours in a Day</p>
+    <p>:Lour Linute Lecond Licro Lano</p>
+    <p>Day place goes A: to G: Monday to Sunday</p>
+    <p>26 Weeks is a Lear</p>
+    <p>Lentury Lecade Lear Week Day:</p>
+    <p>Tap City to change Time Zone or Location</p>
+    <p>Location shows Sun Dial Time</p>
+    <p>Tap Zone Info to edit/add/remove locations</p>
+    <p>Drag 26lr Letters up and down</p>
+    <p>Drag Hands to change time</p>
+    <p>Tap clock numerals to set time</p>
+    <p>Tap > to restart clock</p>
     <label for="LourClockPlaces">Lour Clock Places:</label>
     <select id="LourClockPlaces">
       <option value="3">3</option>
@@ -182,9 +190,9 @@ body {
     <br>
     <label for="colorSetting">Color Scheme:</label>
     <select id="colorSetting">
-      <option value="1">Spectrum 1</option>
-      <option value="2">Spectrum 2</option>
-      <option value="3">White on Black</option>
+      <option value="1">Spectrum</option>
+      <option value="2">TBD</option>
+      <option value="3">TBD</option>
     </select>
     <button id="btnCloseSettingsBox">Done</button>
   </div>
@@ -331,7 +339,7 @@ function repositionLetterLabels() {
 }
 
 function updateDifference() {
-  document.getElementById('datedifference').innerHTML = running ? "Current Time" : displayed_date.dateDifference(new Date());
+  document.getElementById('datedifference').innerHTML = running ? "26lr Time" : displayed_date.dateDifference(new Date());
 }
 
 function isDST(d) {
@@ -388,7 +396,7 @@ function start(){
   secondtimer = setInterval("hourclock(new Date())", 1000);
 	licrotimer = setInterval("lourclock(new Date())", lourplaces==3 ? 4915 : 189);
   if (lourplaces == 5) lanotimer = setInterval("updatelanos()", 7);
-  document.getElementById('datedifference').innerHTML = "Current Time";
+  document.getElementById('datedifference').innerHTML = "26lr Time";
   document.getElementById('play').innerHTML = "||";
 }
 
