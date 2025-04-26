@@ -49,11 +49,11 @@ body {
 
 #lourClock{margin: 30 0 60 0; white-space: nowrap; }
 #zoneDiv{margin: auto; width:320px;}
-#zoneName{float:left; margin: -15;}
+#zoneName{float:left; margin: -24;}
 #curLoc{float:right; margin-top:5px;font-size:36px;color:grey}
-#settingsIcon{ margin-top:15px;font-size:30px;color:grey}
-#zoneInfo{float:right; margin: -15;}
-#hourClock{ margin: 0 0; height:320px;}
+#settingsIcon{ margin-top:25px;font-size:20px;color:grey}
+#zoneInfo{float:right; margin: -24;}
+#hourClock{ margin: 10 0; height:320px;}
 #clocktime{font-size:20px;}
 .transport{padding: 30px;}
 .transctl{padding: 30px; border: 1px}
@@ -342,7 +342,7 @@ function repositionLetterLabels() {
 }
 
 function updateDifference() {
-  document.getElementById('datedifference').innerHTML = running ? "26lr Time" : displayed_date.dateDifference(new Date());
+  document.getElementById('datedifference').innerHTML = running ? "26 Lour Time" : displayed_date.dateDifference(new Date());
 }
 
 function isDST(d) {
