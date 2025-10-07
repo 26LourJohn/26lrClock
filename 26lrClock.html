@@ -215,6 +215,7 @@ var sundial; //longitude or 0 for mean time
 var eot; //in minutes
 var stimezone;
 var oldlour = -1;
+var oldtzo = 0;	
 var lourplaces = 5;
 var placetouched;
 var placetouchedstart;
@@ -276,10 +277,13 @@ function lourclock(d){
       } 
       lourclock[i].innerHTML=digits[i];
   }
+
+  if (!sundial) localtimeoffset = displayed_date.getTZOffset(stimezone);
   
-  if(!running || oldlour!=digits[6]){
+  if(!running || oldlour!=digits[6] || oldtzo!=localtimeoffset){
     repositionLetterLabels();
     oldlour = digits[6];
+    oldtzo = localtimeoffset;	
   }
   lourclock[5].style.color = "hsl("+ displayed_date.timepart()*360+", 100%, 50%)";
   lanos = digits[10].charCodeAt(0)-65;	
