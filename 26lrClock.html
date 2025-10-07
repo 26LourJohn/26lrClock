@@ -277,7 +277,7 @@ function lourclock(d){
       lourclock[i].innerHTML=digits[i];
   }
   
-  if(oldlour!=digits[6]){
+  if(!running || oldlour!=digits[6]){
     repositionLetterLabels();
     oldlour = digits[6];
   }
