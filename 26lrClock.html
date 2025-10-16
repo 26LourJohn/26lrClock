@@ -145,6 +145,9 @@ body {
   <span id="debug"></span>
 </div>
 <div>
+  <span id="hourangle"></span>
+</div>
+<div>
   <span id="SettingsIcon">&#x2699;</span>
 </div>
 <div id="AddTimezoneBox" class="modal">
@@ -212,6 +215,7 @@ var displayed_date = new Date();
 var digits;
 var localtimeOffset; //in minutes from GMT
 var sundial; //longitude or 0 for mean time
+var latitude;
 var eot; //in minutes
 var stimezone;
 var oldlour = -1;
@@ -327,6 +331,9 @@ function hourclock(d) {
     timeZoneName: 'short'
   });
   document.getElementById('debug').innerHTML = "EoT: " +eot;
+  
+  var hourangle = localsecondsintoday/86400 * 360 - 180;
+  document.getElementById('hourangle').innerHTML = "Hour Angle: " + Math.round(hourangle*10)/10;
   updateDifference();
 }
 
@@ -367,6 +374,7 @@ function changeTimezone(){
   var sundialloc = stz[2].split(",");
   sundial = sundialloc.length>1 ? sundialloc[1] : 0;
   if (sundial){
+    latitude = sundialloc[0];
     localtimeoffset = (sundialloc[1]/180*720*-1);
     document.getElementById('zoneInfo').innerHTML= sundialloc;//longitudeto26lr(sundialloc[1]);
   }else{
@@ -574,7 +582,7 @@ el("hourClock").addEventListener('mouseup',(e)  => {
 
 
 
-  localStorage.clear();
+ // localStorage.clear();
 var storedTimeZones = JSON.parse(localStorage.getItem("storedTimeZones") || "[]");
 var selectedTimeZone = localStorage.getItem("selectedTimeZone") || 0;
 
