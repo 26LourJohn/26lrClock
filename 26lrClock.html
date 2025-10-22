@@ -148,6 +148,9 @@ body {
   <span id="hourangle"></span>
 </div>
 <div>
+  <span id="azimuth"></span>
+</div>
+<div>
   <span id="SettingsIcon">&#x2699;</span>
 </div>
 <div id="AddTimezoneBox" class="modal">
@@ -334,6 +337,8 @@ function hourclock(d) {
   
   var hourangle = localsecondsintoday/86400 * 360 - 180;
   document.getElementById('hourangle').innerHTML = "Hour Angle: " + Math.round(hourangle*10)/10;
+  var hourangle = localsecondsintoday/86400 * 360 - 180;
+  document.getElementById('azimuth').innerHTML = "Azimuth: " + calculateAzimuth(hourangle, latitude, displayed_date.toJulian());
   updateDifference();
 }
 
@@ -360,6 +365,56 @@ function isDST(d) {
     let jan = new Date(d.getFullYear(), 0, 1).getTimezoneOffset();
     let jul = new Date(d.getFullYear(), 6, 1).getTimezoneOffset();
     return Math.max(jan, jul) !== d.getTimezoneOffset();    
+}
+
+/**
+ * Calculate solar azimuth angle (true north = 0°)
+ * @param {number} H - Local solar hour angle in hours (-12 to +12, 0 = solar noon)
+ * @param {number} latitude - Latitude in degrees (-90 to +90)
+ * @param {number} juliandate - Julian date (e.g., 2460622.5)
+ * @returns {number|null} Azimuth in degrees (0–360), or null if sun below horizon
+ */
+ function calculateAzimuth(HA_deg, latdeg, juliandate) {
+  // Step 1: Round Julian date to nearest day → Day of Year
+  const JD0 = Math.floor(juliandate - 0.5) + 0.5; // JD at 0h UT
+  const D = JD0 - 2451545.0; // Days since J2000.0
+  const doy = Math.floor(D + 0.5) - Math.floor((Math.floor((D + 0.5) / 365.25) * 365.25));
+
+  // Step 2: Solar declination (δ) — accurate to < 0.01°
+  const n = doy; // day of year (1 to 366)
+  const g = (360 / 365.2425) * n; // mean anomaly
+  const L = g + 1.914 * Math.sin(g * Math.PI / 180) + 0.020 * Math.sin(2 * g * Math.PI / 180); // ecliptic longitude
+  const eps = 23.439 - 0.0000004 * n; // obliquity
+  const delta = Math.asin(Math.sin(L * Math.PI / 180) * Math.sin(eps * Math.PI / 180)) * 180 / Math.PI;
+
+  // Step 3: Hour angle in degrees
+  //const HA_deg = H * 15; // H in hours → degrees
+
+  // Step 4: Convert to radians
+  const lat = latdeg * Math.PI / 180;
+  const dec = delta * Math.PI / 180;
+  const ha = HA_deg * Math.PI / 180;
+
+  // Step 5: Altitude (h) — if h ≤ 0, sun is below horizon
+  const sin_h = Math.sin(lat) * Math.sin(dec) + Math.cos(lat) * Math.cos(dec) * Math.cos(ha);
+  if (sin_h <= 0) return null; // Sun below horizon
+
+  const h = Math.asin(sin_h); // altitude in radians
+  const cos_h = Math.cos(h);
+
+  // Step 6: Azimuth (A) — south = 0 in formula, adjust to north = 0
+  const cos_A = (Math.sin(dec) - Math.sin(lat) * sin_h) / (Math.cos(lat) * cos_h);
+  if (Math.abs(cos_A) > 1) return null; // edge case
+
+  let A = Math.acos(cos_A) * 180 / Math.PI;
+
+  // Adjust quadrant: morning (HA < 0) → A = 360 - A, afternoon → A
+  if (HA_deg > 0) {
+    A = 360 - A;
+  }
+
+  // Step 7: Return azimuth (0° = North), rounded to 0.1°
+  return Math.round(A * 10) / 10;
 }
 
 
