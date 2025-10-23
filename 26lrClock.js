@@ -99,6 +99,11 @@ Date.prototype.toJulian = function () {
   	timepart -= Math.floor(timepart);
     return datepart+timepart;
 };
+
+Date.prototype.dayOfYear = function () {
+	return Math.floor((this.getTime() - new Date(this.getFullYear(), 0, 0)) / 864e5);
+};
+
  
 Date.prototype.equationoftime = function(){
 
