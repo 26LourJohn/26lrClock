@@ -151,6 +151,15 @@ body {
   <span id="azimuth"></span>
 </div>
 <div>
+  <span id="azimuth2"></span>
+</div>
+<div>
+  <span id="altitude"></span>
+</div>
+<div>
+  <span id="sunset"></span>
+</div>
+<div>
   <span id="SettingsIcon">&#x2699;</span>
 </div>
 <div id="AddTimezoneBox" class="modal">
@@ -306,9 +315,9 @@ function updatelanos(){
 
 function hourclock(d) {
   if (d) displayed_date = d;
-   
-  eot = sundial ? displayed_date.equationoftime() : 0;
-  localsecondsintoday = Math.floor(86400 * displayed_date.timepart() + 43200 - ((localtimeoffset - eot) * 60)) % 86400;
+  eot = displayed_date.equationoftime();
+  //if sundial subtract eot 
+  localsecondsintoday = Math.floor(86400 * displayed_date.timepart() + 43200 - ((localtimeoffset - (sundial?eot:0)) * 60)) % 86400;
    isAM = localsecondsintoday < 43200;
 	 hDeg = 360 * (localsecondsintoday % 43200)/43200;
 	 mDeg = 360 * (localsecondsintoday % 3600)/3600;
@@ -333,13 +342,22 @@ function hourclock(d) {
     timeZone: stimezone,
     timeZoneName: 'short'
   });
+
   document.getElementById('debug').innerHTML = "EoT: " +eot;
   
   var hourangle = localsecondsintoday/86400 * 360 - 180;
   document.getElementById('hourangle').innerHTML = "Hour Angle: " + Math.round(hourangle*10)/10;
-  var hourangle = localsecondsintoday/86400 * 360 - 180;
+  document.getElementById('azimuth').innerHTML = "Azimuth1: " + calculateAzimuth(hourangle, latitude, displayed_date.toJulian());
+
   const sun = calculateSolarPosition(hourangle, latitude, displayed_date.dayOfYear());
-  document.getElementById('azimuth').innerHTML = "Azimuth: " + sun.azimuth;
+  document.getElementById('azimuth2').innerHTML = "Azimuth2: " + sun.azimuth;
+  document.getElementById('altitude').innerHTML = "Altitude: " + sun.altitude;
+  
+  const sss = sun.sunset * 3600;
+  const hour = Math.floor(sss / 3600);
+  const minute = Math.floor((sss % 3600) / 60);
+  //const s = Math.floor(sss % 60);
+  document.getElementById('sunset').innerHTML = "Sunset: " + hour+":"+(minute<10?"0":"")+minute;
   updateDifference();
 }
 
@@ -348,7 +366,7 @@ function repositionLetterLabels() {
   var r = 70;
   for (var i=0;i<26;i++){
     if (l>25) l=0;
-    var h = l/13 - (localtimeoffset - eot)/720;
+    var h = l/13 - (localtimeoffset - (sundial?eot:0))/720;
     r += i<14 ? 3 : 2;
     var x =  0 + (r * Math.sin(h*2*Math.PI));
     var y =  0 - (r * Math.cos(h*2*Math.PI));
@@ -367,6 +385,48 @@ function isDST(d) {
     let jul = new Date(d.getFullYear(), 6, 1).getTimezoneOffset();
     return Math.max(jan, jul) !== d.getTimezoneOffset();    
 }
+
+function calculateAzimuth(HA_deg, latdeg, juliandate) {
+  // Step 1: Round Julian date to nearest day → Day of Year
+  const JD0 = Math.floor(juliandate - 0.5) + 0.5; // JD at 0h UT
+  const D = JD0 - 2451545.0; // Days since J2000.0
+  const doy = Math.floor(D + 0.5) - Math.floor((Math.floor((D + 0.5) / 365.25) * 365.25));
+
+  // Step 2: Solar declination (δ) — accurate to < 0.01°
+  const n = doy; // day of year (1 to 366)
+  const g = (360 / 365.2425) * n; // mean anomaly
+  const L = g + 1.914 * Math.sin(g * Math.PI / 180) + 0.020 * Math.sin(2 * g * Math.PI / 180); // ecliptic longitude
+  const eps = 23.439 - 0.0000004 * n; // obliquity
+  const delta = Math.asin(Math.sin(L * Math.PI / 180) * Math.sin(eps * Math.PI / 180)) * 180 / Math.PI;
+
+  // Step 3: Hour angle in degrees
+  //const HA_deg = H * 15; // H in hours → degrees
+
+  // Step 4: Convert to radians
+  const lat = latdeg * Math.PI / 180;
+  const dec = delta * Math.PI / 180;
+  const ha = HA_deg * Math.PI / 180;
+
+  // Step 5: Altitude (h) — if h ≤ 0, sun is below horizon
+  const sin_h = Math.sin(lat) * Math.sin(dec) + Math.cos(lat) * Math.cos(dec) * Math.cos(ha);
+  if (sin_h <= 0) return null; // Sun below horizon
+
+  const h = Math.asin(sin_h); // altitude in radians
+  const cos_h = Math.cos(h);
+
+  // Step 6: Azimuth (A) — south = 0 in formula, adjust to north = 0
+  const cos_A = (Math.sin(dec) - Math.sin(lat) * sin_h) / (Math.cos(lat) * cos_h);
+  if (Math.abs(cos_A) > 1) return null; // edge case
+
+  let A = Math.acos(cos_A) * 180 / Math.PI;
+
+  // Adjust quadrant: morning (HA < 0) → A = 360 - A, afternoon → A
+  if (HA_deg > 0) {
+    A = 360 - A;
+    return Math.round(A * 10) / 10;
+  }
+}
+
 /**
  * Returns { sunset, altitude, azimuth }
  * - sunset: local solar time of sunset (hours after solar noon), null if no sunset
@@ -402,8 +462,8 @@ function isDST(d) {
     let cos_A = (Math.sin(δ) - Math.sin(φ) * sin_h) / (Math.cos(φ) * cos_h);
     cos_A = Math.max(-1, Math.min(1, cos_A));  // clamp
     let A = Math.acos(cos_A) * 180 / Math.PI;
-  //  if (H > 0) A = 360 - A;
-  //  else if (H === 0) A = 180;
+    if (ha > 0) A = 360 - A;
+    else if (ha === 0) A = 180;
     azimuth = Math.round(A * 10) / 10;
   }
 
