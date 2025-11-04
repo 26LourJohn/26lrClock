@@ -141,20 +141,12 @@ body {
   <label for="dateinput">Set to:</label>
   <input type="text" id="dateinput" >
 </div>
+
 <div>
-  <span id="debug"></span>
-</div>
-<div>
-  <span id="hourangle"></span>
+  <span id="EoT"></span>
 </div>
 <div>
   <span id="azimuth"></span>
-</div>
-<div>
-  <span id="azimuth2"></span>
-</div>
-<div>
-  <span id="altitude"></span>
 </div>
 <div>
   <span id="sunset"></span>
@@ -182,15 +174,15 @@ body {
 </div>
 <div id="SettingsBox" class="modal">
   <div class="modal-content">
-    <p>26 Lour Clock</p>
+    <p>26 Lour Time</p>
     <p>DATE:TIME</p>
-    <p>A:A is Monday, 12:00 Noon UTC</p>
+    <p>A:A is Monday Noon Universal Time</p>
     <p>26 Lours in a Day</p>
     <p>26 Linutes in a Lour, etc</p>
     <p>:Lour Linute Lecond Licro Lano</p>
     <p>Date is the Julian Date</p>
-    <p>Day goes A: (Monday) to G: (Sunday)</p>
-    <p>26 Weeks is a Lear</p>
+    <p>Day place goes A: (Monday) to G: (Sunday)</p>
+    <p>26 Weeks is called a Lear</p>
     <p>Lentury Lecade Lear Week Day:</p>
     <p>Tap City to change Time Zone or Location</p>
     <p>Location shows Sun Dial Time</p>
@@ -199,6 +191,7 @@ body {
     <p>Drag Hands to change time</p>
     <p>Tap clock numerals to set time</p>
     <p>Tap > to restart clock</p>
+  
     <label for="LourClockPlaces">Lour Clock Places:</label>
     <select id="LourClockPlaces">
       <option value="3">3</option>
@@ -206,12 +199,12 @@ body {
       <option value="5">5</option>
     </select>
     <br>
-    <label for="colorSetting">Color Scheme:</label>
+ <!--   <label for="colorSetting">Color Scheme:</label>
     <select id="colorSetting">
       <option value="1">Spectrum</option>
       <option value="2">TBD</option>
       <option value="3">TBD</option>
-    </select>
+    </select> -->
     <button id="btnCloseSettingsBox">Done</button>
   </div>
 </div>
@@ -343,15 +336,15 @@ function hourclock(d) {
     timeZoneName: 'short'
   });
 
-  document.getElementById('debug').innerHTML = "EoT: " +eot;
+  document.getElementById('EoT').innerHTML = "EoT: " +eot;
   
   var hourangle = localsecondsintoday/86400 * 360 - 180;
-  document.getElementById('hourangle').innerHTML = "Hour Angle: " + Math.round(hourangle*10)/10;
-  document.getElementById('azimuth').innerHTML = "Azimuth1: " + calculateAzimuth(hourangle, latitude, displayed_date.toJulian());
+  //document.getElementById('hourangle').innerHTML = "Hour Angle: " + Math.round(hourangle*10)/10;
+  //document.getElementById('azimuth').innerHTML = "Azimuth1: " + calculateAzimuth(hourangle, latitude, displayed_date.toJulian());
 
   const sun = calculateSolarPosition(hourangle, latitude, displayed_date.dayOfYear());
-  document.getElementById('azimuth2').innerHTML = "Azimuth2: " + sun.azimuth;
-  document.getElementById('altitude').innerHTML = "Altitude: " + sun.altitude;
+  document.getElementById('azimuth').innerHTML = "Azimuth: " + sun.azimuth;
+  //document.getElementById('altitude').innerHTML = "Altitude: " + sun.altitude;
   
   const sss = sun.sunset * 3600;
   const hour = Math.floor(sss / 3600);
@@ -377,7 +370,7 @@ function repositionLetterLabels() {
 }
 
 function updateDifference() {
-  document.getElementById('datedifference').innerHTML = running ? "26 Lour Time" : displayed_date.dateDifference(new Date());
+  document.getElementById('datedifference').innerHTML = running ? "26Lr Time" : displayed_date.dateDifference(new Date());
 }
 
 function isDST(d) {
@@ -386,53 +379,6 @@ function isDST(d) {
     return Math.max(jan, jul) !== d.getTimezoneOffset();    
 }
 
-function calculateAzimuth(HA_deg, latdeg, juliandate) {
-  // Step 1: Round Julian date to nearest day → Day of Year
-  const JD0 = Math.floor(juliandate - 0.5) + 0.5; // JD at 0h UT
-  const D = JD0 - 2451545.0; // Days since J2000.0
-  const doy = Math.floor(D + 0.5) - Math.floor((Math.floor((D + 0.5) / 365.25) * 365.25));
-
-  // Step 2: Solar declination (δ) — accurate to < 0.01°
-  const n = doy; // day of year (1 to 366)
-  const g = (360 / 365.2425) * n; // mean anomaly
-  const L = g + 1.914 * Math.sin(g * Math.PI / 180) + 0.020 * Math.sin(2 * g * Math.PI / 180); // ecliptic longitude
-  const eps = 23.439 - 0.0000004 * n; // obliquity
-  const delta = Math.asin(Math.sin(L * Math.PI / 180) * Math.sin(eps * Math.PI / 180)) * 180 / Math.PI;
-
-  // Step 3: Hour angle in degrees
-  //const HA_deg = H * 15; // H in hours → degrees
-
-  // Step 4: Convert to radians
-  const lat = latdeg * Math.PI / 180;
-  const dec = delta * Math.PI / 180;
-  const ha = HA_deg * Math.PI / 180;
-
-  // Step 5: Altitude (h) — if h ≤ 0, sun is below horizon
-  const sin_h = Math.sin(lat) * Math.sin(dec) + Math.cos(lat) * Math.cos(dec) * Math.cos(ha);
-  if (sin_h <= 0) return null; // Sun below horizon
-
-  const h = Math.asin(sin_h); // altitude in radians
-  const cos_h = Math.cos(h);
-
-  // Step 6: Azimuth (A) — south = 0 in formula, adjust to north = 0
-  const cos_A = (Math.sin(dec) - Math.sin(lat) * sin_h) / (Math.cos(lat) * cos_h);
-  if (Math.abs(cos_A) > 1) return null; // edge case
-
-  let A = Math.acos(cos_A) * 180 / Math.PI;
-
-  // Adjust quadrant: morning (HA < 0) → A = 360 - A, afternoon → A
-  if (HA_deg > 0) {
-    A = 360 - A;
-    return Math.round(A * 10) / 10;
-  }
-}
-
-/**
- * Returns { sunset, altitude, azimuth }
- * - sunset: local solar time of sunset (hours after solar noon), null if no sunset
- * - altitude: current solar altitude in degrees
- * - azimuth: current solar azimuth (0° = true north), null if below horizon
- */
  function calculateSolarPosition(HO, latdeg, D) {
 
   // --- 2. Solar declination (δ) ---
@@ -443,19 +389,13 @@ function calculateAzimuth(HA_deg, latdeg, juliandate) {
   const eps = 23.439 - 0.0000004 * D;
   const delta = Math.asin(Math.sin(L * Math.PI/180) * Math.sin(eps * Math.PI/180)) * 180 / Math.PI;
 
-  // --- 3. Current hour angle ---
-  //const HO = H * 15;  // degrees
-
-  // --- 4. Radians ---
   const φ = latdeg * Math.PI / 180;
   const δ = delta * Math.PI / 180;
   const ha = HO * Math.PI / 180;
   
-  // --- 5. Current altitude ---
   const sin_h = Math.sin(φ) * Math.sin(δ) + Math.cos(φ) * Math.cos(δ) * Math.cos(ha);
-  const altitude = Math.asin(sin_h) * 180 / Math.PI;
-  
-  // --- 6. Current azimuth ---
+  const altitude = Math.round(Math.asin(sin_h) * 180 / Math.PI  * 10) / 10;
+
   let azimuth = null;
   if (sin_h > 0) {
     const cos_h = Math.cos(Math.asin(sin_h));
@@ -467,9 +407,6 @@ function calculateAzimuth(HA_deg, latdeg, juliandate) {
     azimuth = Math.round(A * 10) / 10;
   }
 
-  
-
-  // --- 7. Sunset time (hours after solar noon) ---
   let sunset = null;
   const cos_h0 = -0.833 * Math.PI / 180;  // sun center on horizon
   const arg = (cos_h0 - Math.sin(φ) * Math.sin(δ)) / (Math.cos(φ) * Math.cos(δ));
@@ -477,13 +414,7 @@ function calculateAzimuth(HA_deg, latdeg, juliandate) {
     const H0 = Math.acos(arg) * 180 / Math.PI / 15;  // hours from noon
     sunset = Math.round(H0 * 100) / 100;             // 2 decimal places
   }
-
-  // --- 8. Return ---
-  return {
-    sunset,                    // e.g., 5.92 → 5:55 PM local solar time
-    altitude: Math.round(altitude * 10) / 10,
-    azimuth                    // null if below horizon
-  };
+  return {sunset,altitude,azimuth};
 }
 
 
@@ -535,7 +466,6 @@ function start(){
   secondtimer = setInterval("hourclock(new Date())", 1000);
 	licrotimer = setInterval("lourclock(new Date())", lourplaces==3 ? 4915 : 189);
   if (lourplaces == 5) lanotimer = setInterval("updatelanos()", 7);
-  document.getElementById('datedifference').innerHTML = "26lr Time";
   document.getElementById('play').innerHTML = "||";
 }
 
@@ -814,6 +744,14 @@ window.onclick = function(event) {
     SettingsBox.style.display = "none";
   }
 }
+
+document.getElementById('datedifference').addEventListener('click', (e) => {
+  SettingsBox.style.display = "block";    
+});
+
+document.getElementById('SettingsIcon').addEventListener('click', (e) => {
+  SettingsBox.style.display = "block";    
+});
 
 document.getElementById('zoneName').addEventListener('click', (e) => {
   selectedTimeZone++; 
@@ -1433,9 +1371,6 @@ document.getElementById('zoneInfo').addEventListener('click', (e) => {
   AddTimezoneBox.style.display = "block";    
 });
 
-document.getElementById('SettingsIcon').addEventListener('click', (e) => {
-  SettingsBox.style.display = "block";    
-});
 
 start();
 
