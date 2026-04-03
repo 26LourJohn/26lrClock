@@ -156,42 +156,38 @@ body {
 </div>
 <div id="AddTimezoneBox" class="modal">
   <div class="modal-content">
-    <p>Stored Location/Zone:</p>
+    <p>Stored Time Zone / Location:</p>
     <label for="timezonename"> Name:</label>
     <input type="text" id="timezonename">
-    <br>
+    <p>
     <label for="timezonefulllist">Zone:</label>
     <select name="timezonefulllist" id="timezonefulllist"></select>
-    <br>
-    <button id="getloc" type="button">Get Loc</button>
+    <p>
+    <label for="latlong">Location (opt):</label>
     <input type="text" id="latlong">
-    <button id="btnGetTimezone" type="button">Get Zone</button>
-    <br>
+    <p>
+    <button id="getloc" type="button">Current Location</button>
+    <button id="btnGetTimezone" type="button">Lookup TimeZone</button>
+    </p>
     <button id="btnRemoveZone">Remove</button>
     <button id="btnAddZone">Add</button>
-    <button id="btnCloseZoneBox">Done</button>
+    <button id="btnCloseZoneBox">Close</button>
   </div>
 </div>
 <div id="SettingsBox" class="modal">
   <div class="modal-content">
-    <p>26 Lour Time</p>
-    <p>DATE:TIME</p>
-    <p>A:A is Monday Noon Universal Time</p>
-    <p>26 Lours in a Day</p>
-    <p>26 Linutes in a Lour, etc</p>
-    <p>:Lour Linute Lecond Licro Lano</p>
-    <p>Date is the Julian Date</p>
-    <p>Day place goes A: (Monday) to G: (Sunday)</p>
-    <p>26 Weeks is called a Lear</p>
-    <p>Lentury Lecade Lear Week Day:</p>
-    <p>Tap City to change Time Zone or Location</p>
-    <p>Location shows Sun Dial Time</p>
-    <p>Tap Zone Info to edit/add/remove locations</p>
+    <p>26LrClock shows Julian Date using Letters</p>
+    <p>A:A is Monday, 12:00 PM UTC</p>
+    <p>Analog Clock shows Time Zone or Sundial Time</p>
+    <p>Tap to change Time Zone and Edit Locations</p>
     <p>Drag 26lr Letters up and down</p>
     <p>Drag Hands to change time</p>
     <p>Tap clock numerals to set time</p>
     <p>Tap > to restart clock</p>
-  
+    <p>Tap << and >> to double speed</p>
+    <p>Warning!</p>
+    <p>Copyright HowardDev 2026</p>
+    <p></p>
     <label for="LourClockPlaces">Lour Clock Places:</label>
     <select id="LourClockPlaces">
       <option value="3">3</option>
@@ -199,13 +195,18 @@ body {
       <option value="5">5</option>
     </select>
     <br>
- <!--   <label for="colorSetting">Color Scheme:</label>
+<!--   <label for="colorSetting">Color Scheme:</label>
     <select id="colorSetting">
       <option value="1">Spectrum</option>
-      <option value="2">TBD</option>
-      <option value="3">TBD</option>
+      <option value="2">Greyscale</option>
     </select> -->
-    <button id="btnCloseSettingsBox">Done</button>
+<!--     <br>
+    <label for="refreshRate">Refresh Rate:</label>
+    <select id="refreshRate">
+      <option value="1">High (Use at own risk!!)</option>
+      <option value="2">Low</option>
+    </select> -->
+    <button id="btnCloseSettingsBox">Close</button>
   </div>
 </div>
 </body>
@@ -479,7 +480,7 @@ function runFast(s){
   stop();
   clearInterval(differencetimer);
   runfastspeed=s;
-  runfasttimer = setInterval("addToDate("+runfastspeed+")",50);
+  runfasttimer = setInterval("addToDate("+runfastspeed+")",25);
   document.getElementById('play').innerHTML = "||";
   if (Math.abs(s)>3600) document.getElementById('secondhand').style.visibility = 'hidden';
   if (Math.abs(s)>345600) document.getElementById('minutehand').style.visibility = 'hidden';
@@ -636,12 +637,14 @@ el("hourClock").addEventListener('mouseup',(e)  => {
 
 
 
- // localStorage.clear();
+// localStorage.clear();
 var storedTimeZones = JSON.parse(localStorage.getItem("storedTimeZones") || "[]");
 var selectedTimeZone = localStorage.getItem("selectedTimeZone") || 0;
 
 if (storedTimeZones.length==0){
+  var localtimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   storedTimeZones = [
+    ["Local",localtimezone,""],
     ["Boston","America/New_York","42.3, -71.1"],
     ["Detroit","America/New_York","42, -83"],
     ["Eastern US","America/New_York",""],
@@ -684,6 +687,12 @@ btnAddZone.onclick = function() {
 
 btnRemoveZone.onclick = function() {
   storedTimeZones.splice(selectedTimeZone,1);
+  if (storedTimeZones.length==0){
+    //can't be empty so add Local
+    var localtimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    storedTimeZones = [["Local",localtimezone,""]];
+    localStorage.setItem('storedTimeZones',JSON.stringify(storedTimeZones));
+  }
   if (selectedTimeZone == storedTimeZones.length) selectedTimeZone = 0; //back to top;
   localStorage.setItem('selectedTimeZone',selectedTimeZone);
   localStorage.setItem('storedTimeZones',JSON.stringify(storedTimeZones));
