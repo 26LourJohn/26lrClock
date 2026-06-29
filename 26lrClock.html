@@ -419,7 +419,10 @@ function isDST(d) {
 }
 
 
-function changeTimezone(){
+function changeTimezone(city){
+  if (city){
+    selectedTimeZone =  storedTimeZones.findIndex(z => z[0] === city);
+  }
   var stz = storedTimeZones[selectedTimeZone];
 //  if(stz[0]=="Current Location"){
 //    navigator.geolocation.getCurrentPosition((position) => {
@@ -637,7 +640,7 @@ el("hourClock").addEventListener('mouseup',(e)  => {
 
 
 
-// localStorage.clear();
+ localStorage.clear();
 var storedTimeZones = JSON.parse(localStorage.getItem("storedTimeZones") || "[]");
 var selectedTimeZone = localStorage.getItem("selectedTimeZone") || 0;
 
@@ -645,14 +648,22 @@ if (storedTimeZones.length==0){
   var localtimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   storedTimeZones = [
     ["Local",localtimezone,""],
-    ["Boston","America/New_York","42.3, -71.1"],
-    ["Detroit","America/New_York","42, -83"],
-    ["Eastern US","America/New_York",""],
-    ["Pacific US","America/Los_Angeles",""],
-    ["Tokyo","Asia/Tokyo","35.6, 139.0"],
-    ["Moscow","Europe/Moscow","55.3, 37.3"],
-    ["Germany","Europe/Berlin",""],
-    ["Stonehenge","Europe/London","51.18, -1.83"]
+    ["Atlanta", "America/New_York", "33.7490, -84.3880"],
+    ["Boston", "America/New_York", "42.3601, -71.0589"],
+    ["Dallas", "America/Chicago", "32.7767, -96.7970"],
+    ["Houston", "America/Chicago", "29.7604, -95.3698"],
+    ["Kansas City", "America/Chicago", "39.0997, -94.5786"],
+    ["Los Angeles", "America/Los_Angeles", "34.0522, -118.2437"],
+    ["Miami", "America/New_York", "25.7617, -80.1918"],
+    ["New York/New Jersey", "America/New_York", "40.7128, -74.0060"],
+    ["Philadelphia", "America/New_York", "39.9526, -75.1652"],
+    ["San Francisco Bay Area", "America/Los_Angeles", "37.7749, -122.4194"],
+    ["Seattle", "America/Los_Angeles", "47.6062, -122.3321"],
+    ["Guadalajara", "America/Mexico_City", "20.6597, -103.3496"],
+    ["Mexico City", "America/Mexico_City", "19.4326, -99.1332"],
+    ["Monterrey", "America/Mexico_City", "25.6866, -100.3161"],
+    ["Toronto", "America/Toronto", "43.6532, -79.3832"],
+    ["Vancouver", "America/Vancouver", "49.2827, -123.1207"]
   ];
   localStorage.setItem('storedTimeZones',JSON.stringify(storedTimeZones));
   localStorage.setItem('selectedTimeZone',0);
@@ -1380,8 +1391,10 @@ document.getElementById('zoneInfo').addEventListener('click', (e) => {
   AddTimezoneBox.style.display = "block";    
 });
 
-
 start();
+
+if (params.t) setClockTo(params.t);
+if (params.c) changeTimezone(params.c);
 
 </script>
 
