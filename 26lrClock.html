@@ -283,8 +283,10 @@ function lourclock(d){
 	for (var i=running?9:10;i>=0;i--){
       if (i!=5){
         //if(running && olddigits[i]==digits[i]) break; //bug on wake
-        lourclock[i].style.color = "hsl(" +((digits[i].charCodeAt(0)-65)*13.85) + ", 100%, 50%)";
-      } 
+        //too many colors?
+        //lourclock[i].style.color = "hsl(" +((digits[i].charCodeAt(0)-65)*13.85) + ", 100%, 50%)";
+        lourclock[i].style.color = "hsl(" + displayed_date.timepart()*360+", 100%, 50%)";
+    } 
       lourclock[i].innerHTML=digits[i];
   }
 
