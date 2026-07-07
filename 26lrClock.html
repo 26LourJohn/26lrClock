@@ -305,7 +305,8 @@ var lanos = 0; //reduces cpu by fudging lanos digit?
 function updatelanos(){
 	if (lanos>25) lanos = 0;
 	document.getElementById('lanos').innerHTML=String.fromCharCode(lanos+65);
-	document.getElementById('lanos').style.color = "hsl("+lanos*13+", 100%, 50%)";
+  document.getElementById('lanos').style.color = "hsl("+ displayed_date.timepart()*360+", 100%, 50%)";
+	//document.getElementById('lanos').style.color = "hsl("+lanos*13+", 100%, 50%)";
 	lanos++;
 }
 
