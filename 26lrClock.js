@@ -9,7 +9,6 @@ Date.prototype.from26Lr = function (s) {
 	lrtime=s[1];
 	var weeks = 0;
 	var days = 0;
-	//now = new Date;
 	defaultmask = this.to26lr();
 	lrdate = defaultmask.substring(0,5-lrdate.length) + lrdate;
 

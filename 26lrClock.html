@@ -443,6 +443,7 @@ function changeTimezone(){
   setClockColors(longitudetocolor(localtimeoffset / -720 * 180));
   repositionLetterLabels();
   document.getElementById('zoneName').innerHTML=stz[0];
+  hourclock();//redraw immediately
 }	
 
 function setClockColors(c){
@@ -464,7 +465,7 @@ function start(){
   changeTimezone();
   running = true;
   runfastspeed = 0;
-  hourclock();
+  //hourclock();
   lourclock();
 
   secondtimer = setInterval("hourclock(new Date())", 1000);
@@ -778,8 +779,6 @@ document.getElementById('zoneName').addEventListener('click', (e) => {
   if (selectedTimeZone == storedTimeZones.length) selectedTimeZone = 0; //back to top;
   localStorage.setItem('selectedTimeZone',selectedTimeZone);
   changeTimezone();
-  hourclock();
-  //lourclock(); unnecessary!
 });
 
 document.getElementById('zoneInfo').addEventListener('click', (e) => {
@@ -1401,8 +1400,8 @@ if (params.c) {
   }else{
     selectedTimeZone = i;
     localStorage.setItem('selectedTimeZone',i);
+    changeTimezone();
   }
-  changeTimezone();
 }
 
 </script>
